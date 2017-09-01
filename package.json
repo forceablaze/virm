@@ -1,0 +1,18 @@
+{
+  "name": "virmanager",
+  "version": "1.0.0",
+  "description": "A Manager to manage the virtual machine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://192.168.181.190:10080/da/virmanager.git"
+  },
+  "author": "Rico Wang",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.11.0"
+  }
+}
