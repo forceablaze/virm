@@ -4,7 +4,8 @@
   "description": "A Manager to manage the virtual machine",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "babel-node test.js",
+    "dev": "babel-node virmanager.js"
   },
   "repository": {
     "type": "git",
@@ -13,6 +14,13 @@
   "author": "Rico Wang",
   "license": "ISC",
   "dependencies": {
-    "commander": "^2.11.0"
+    "commander": "^2.11.0",
+    "node-serialize": "0.0.4",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1"
   }
 }

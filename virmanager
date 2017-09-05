@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+const program = require('commander');
+import SubProcess from './module/process';
+import Manager from './manager';
+
+const manager = Manager.getInstance();
+
+console.log(manager);
+
+program
+    .version('1.0.0')
+    .description('A Manager to manage virtual machine')
+    .option('-u --uuid [uuid]', 'the uuid of virtual machine')
+
+program
+    .command('list [item]')
+    .alias('l')
+    .action(function(item, options) {
+        console.log(item)
+        console.log(program.uuid)
+    })
+
+program
+    .command('create')
+    .alias('c')
+    .action(function(item, options) {
+        console.log(item)
+        console.log(program.uuid)
+    })
+
+program.parse(process.argv);
