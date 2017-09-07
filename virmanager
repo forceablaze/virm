@@ -15,11 +15,10 @@ program
     .option('-d --dir [dir]', 'the working directory')
 
 program
-    .command('list [item]')
+    .command('list [category]')
     .alias('l')
-    .action(function(item, options) {
-        console.log(item)
-        console.log(program.uuid)
+    .action(function(category, options) {
+        manager.list(category);
     })
 
 program
@@ -33,5 +32,13 @@ program
         else if(item == 'pci') {
         }
     })
+
+program
+    .command('start [device]')
+    .alias('s')
+    .action(function(device) {
+        if(program.uuid != undefined)
+            manager.start(device, program.uuid);
+    });
 
 program.parse(process.argv);

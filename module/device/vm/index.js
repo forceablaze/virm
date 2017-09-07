@@ -32,8 +32,16 @@ class VirtualMachine extends Device
         return this.qemuProcess;
     }
 
-    create() {
-        return this.createInstance();
+    start() {
+        let instance = super.start();
+
+        if(instance) {
+            throw 'started';
+        }
+
+        this.createInstance();
+
+        return this;
     }
 
     destroy() {
@@ -65,7 +73,7 @@ class VirtualMachine extends Device
     }
 
     toString() {
-        return this;
+        return this._args['-name'] + ":" + this._args['-uuid'];
     }
 }
 

@@ -12,7 +12,7 @@ class Device extends DeviceDescription
     }
 
     /* create an instance. */
-    create() {
+    start() {
         if(!this.instance) {
             this.instance = this;
         }

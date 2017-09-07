@@ -1,12 +1,17 @@
 'use strict'
 
 import Category from './Category';
+import Device from '../module/device/device'
 import VirtualMachine from '../module/device/vm';
 import Configuration from '../module/conf';
 
 const CONF_PATH = 'virmanager.conf'
 
 let __configuration = new Configuration();
+
+const PROTOTYPE_MAP = {
+    "VM": VirtualMachine.prototype
+};
 
 /* the instance of Manager */
 let __instance = null;
@@ -30,7 +35,7 @@ class Manager
 
             /* set the __proto__ of each element to Category */
             this.categoryList.forEach((element) => {
-                element.__proto__ = Category.prototype;
+                Object.setPrototypeOf(element, Category.prototype);
             });
 
         } catch(e) {
@@ -77,6 +82,43 @@ class Manager
 
         category.push(vm);
         this.saveConfiguration();
+    }
+
+    list(categoryName) {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == categoryName.toUpperCase();
+        });
+        for(let key in category.list) {
+            Object.setPrototypeOf(category.list[key], Device.prototype);
+            console.log(category.list[key].uuid);
+        }
+    }
+
+    start(categoryName, uuid) {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == categoryName.toUpperCase();
+        });
+
+        let device = null;
+        for(let key in category.list) {
+            if(key == uuid)
+                device = category.list[key];
+        }
+
+        if(device) {
+            Object.setPrototypeOf(device,
+                    PROTOTYPE_MAP[categoryName.toUpperCase()]);
+
+            console.log("start: " + device.toString());
+
+            try {
+                device.start();
+            } catch(e) {
+                console.log(e);
+            }
+        }
     }
 
     static getInstance() {

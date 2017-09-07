@@ -74,3 +74,5 @@ console.log(VirtualMachine.name);
 
 
 console.log(JSON.stringify(category, null, 2));
+
+console.log(Object.getPrototypeOf(conf));
