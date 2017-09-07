@@ -43,6 +43,7 @@ class VirtualMachine extends Device
         } catch(e) {
             throw e;
         }
+        this.qemuProcess = null;
     }
 
     setMemory(size) {
@@ -61,9 +62,6 @@ class VirtualMachine extends Device
     }
 
     addPCIDevice() {
-    }
-
-    serialize() {
     }
 
     toString() {

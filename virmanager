@@ -5,13 +5,14 @@ import SubProcess from './module/process';
 import Manager from './manager';
 
 const manager = Manager.getInstance();
-
-console.log(manager);
+const WORKING_DIR = __dirname;
 
 program
     .version('1.0.0')
     .description('A Manager to manage virtual machine')
     .option('-u --uuid [uuid]', 'the uuid of virtual machine')
+    .option('-n --name [name]', 'the name of virtual machine')
+    .option('-d --dir [dir]', 'the working directory')
 
 program
     .command('list [item]')
@@ -22,11 +23,15 @@ program
     })
 
 program
-    .command('create')
+    .command('create [item]')
     .alias('c')
     .action(function(item, options) {
-        console.log(item)
-        console.log(program.uuid)
+        console.log("create");
+        if(item == 'vm') {
+            manager.createVM(program.name);
+        }
+        else if(item == 'pci') {
+        }
     })
 
 program.parse(process.argv);

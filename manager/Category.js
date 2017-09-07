@@ -1,10 +1,16 @@
 'use strict'
 
-class Category
+import Description from '../module/desc';
+
+class Category extends Description
 {
     constructor(name, type) {
+        super();
         this._name = name;
-        this.list = [];
+        this.typeName = type.name;
+        this.list = {};
+
+        /* prototype */
         this.type = type;
     }
 
@@ -13,9 +19,9 @@ class Category
     }
 
     push(obj) {
-        console.log(obj.constructor.name);
-        console.log(this.type);
-        this.list.push(obj);
+        if(this.typeName == obj.constructor.name) {
+            this.list[obj.uuid] = obj;
+        }
     }
 }
 

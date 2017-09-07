@@ -22,10 +22,6 @@ class Device extends DeviceDescription
     /* destroy the instance. */
     destroy() {
     }
-
-    toString() {
-        return this;
-    }
 }
 
 export default Device
