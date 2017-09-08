@@ -13,10 +13,6 @@ class Device extends DeviceDescription
 
     /* create an instance. */
     start() {
-        if(!this.instance) {
-            this.instance = this;
-        }
-        return this.instance;
     }
 
     /* destroy the instance. */

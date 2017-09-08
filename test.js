@@ -8,34 +8,29 @@ import Category from './manager/Category';
 
 const fs = require('fs');
 
-let vm = new VirtualMachine('New VM');
+let vm = new VirtualMachine('New VM', (data) => {console.log(data)});
 
 vm.setCPUCore(2);
 vm.setMemory(2048);
-vm.setVNC("0.0.0.0", "0");
 
 
 try {
-    vm.create();
+    vm.start();
 //    vm.serialize();
 } catch(e) {
     console.log(e);
 }
-/*
 let p1 = new Promise((resolve, reject) => {
         setTimeout(function() {
             resolve("Success");
             vm.destroy();
 
-        }, 1000)
+        }, 3000)
     }
 )
-*/
 
-vm.destroy();
 
 let conf = new Configuration();
-conf.push('a', vm);
 conf.serialize("conf_test");
 
 let obj = conf.unserialize("conf_test2");
@@ -72,7 +67,5 @@ let category = new Category('VM', VirtualMachine);
 console.log(category);
 console.log(VirtualMachine.name);
 
-
 console.log(JSON.stringify(category, null, 2));
-
 console.log(Object.getPrototypeOf(conf));

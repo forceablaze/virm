@@ -1,44 +1,53 @@
 #!/usr/bin/env node
 
-const program = require('commander');
+const vorpal = require('vorpal')();
+
 import SubProcess from './module/process';
 import Manager from './manager';
 
 const manager = Manager.getInstance();
 const WORKING_DIR = __dirname;
 
-program
-    .version('1.0.0')
-    .description('A Manager to manage virtual machine')
-    .option('-u --uuid [uuid]', 'the uuid of virtual machine')
-    .option('-n --name [name]', 'the name of virtual machine')
-    .option('-d --dir [dir]', 'the working directory')
-
-program
-    .command('list [category]')
+vorpal
+    .command('list <category>', 'List category.')
     .alias('l')
-    .action(function(category, options) {
-        manager.list(category);
-    })
-
-program
-    .command('create [item]')
-    .alias('c')
-    .action(function(item, options) {
-        console.log("create");
-        if(item == 'vm') {
-            manager.createVM(program.name);
-        }
-        else if(item == 'pci') {
-        }
-    })
-
-program
-    .command('start [device]')
-    .alias('s')
-    .action(function(device) {
-        if(program.uuid != undefined)
-            manager.start(device, program.uuid);
+    .action(function(args, cb) {
+        manager.list(args.category);
+        cb();
     });
 
-program.parse(process.argv);
+vorpal
+    .command('create <category> <name>', 'Create item.')
+    .alias('c')
+    .action(function(args, cb) {
+        console.log("create");
+        if(args.category == 'vm') {
+            manager.createVM(args.name);
+        }
+        else if(args.category == 'pci') {
+        }
+        cb();
+    });
+
+vorpal
+    .command('start <category> <uuid>', 'Start a device.')
+    .alias('s')
+    .action(function(args, cb) {
+        if(args.uuid !== undefined)
+            manager.start(args.category, args.uuid);
+        cb();
+    });
+
+vorpal
+    .command('stop <category> <uuid>', 'Stop a device.')
+    .alias('S')
+    .action(function(args, cb) {
+        if(args.uuid !== undefined)
+            manager.stop(args.category, args.uuid);
+        cb();
+    });
+
+vorpal
+    .delimiter('virmanager:')
+    .show()
+    .parse(process.argv);

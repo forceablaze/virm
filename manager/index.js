@@ -95,7 +95,7 @@ class Manager
         }
     }
 
-    start(categoryName, uuid) {
+    findDevice(categoryName, uuid) {
         /* get the category list */
         let category = this.categoryList.find((obj) => {
             return obj.name == categoryName.toUpperCase();
@@ -107,14 +107,34 @@ class Manager
                 device = category.list[key];
         }
 
-        if(device) {
-            Object.setPrototypeOf(device,
-                    PROTOTYPE_MAP[categoryName.toUpperCase()]);
+        Object.setPrototypeOf(device,
+                PROTOTYPE_MAP[categoryName.toUpperCase()]);
 
+        return device;
+    }
+
+    start(categoryName, uuid) {
+        let device = this.findDevice(categoryName, uuid);
+
+        if(device) {
             console.log("start: " + device.toString());
 
             try {
                 device.start();
+            } catch(e) {
+                console.log(e);
+            }
+        }
+    }
+
+    stop(categoryName, uuid) {
+        let device = this.findDevice(categoryName, uuid);
+
+        if(device) {
+            console.log("destroy: " + device.toString());
+
+            try {
+                device.destroy();
             } catch(e) {
                 console.log(e);
             }

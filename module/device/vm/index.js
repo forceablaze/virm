@@ -15,28 +15,26 @@ class VirtualMachine extends Device
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
             '-cpu': 'Nehalem'
         };
-        this.qemuProcess = null;
     }
 
     createInstance() {
         let argArray = [];
         for(let key in this._args) {
-            console.log("key: " + key + "value: " + this._args[key]);
+            console.log("key: " + key + " value: " + this._args[key]);
             argArray.push(key);
             argArray.push(this._args[key]);
         }
 
-        this.qemuProcess = new SubProcess('qemu-system-x86_64', argArray);
-        this.qemuProcess.run();
+        this.instance = new SubProcess('qemu-system-x86_64', argArray);
+        this.instance.run();
+        console.log(this.instance.pid);
 
-        return this.qemuProcess;
+        return this.instance;
     }
 
     start() {
-        let instance = super.start();
-
-        if(instance) {
-            throw 'started';
+        if(this.instance) {
+            throw 'Device already started.';
         }
 
         this.createInstance();
@@ -46,12 +44,12 @@ class VirtualMachine extends Device
 
     destroy() {
         try {
-            if(this.qemuProcess)
-                this.qemuProcess.interrupt();
+            if(this.instance)
+                this.instance.interrupt();
         } catch(e) {
             throw e;
         }
-        this.qemuProcess = null;
+        this.instance = null;
     }
 
     setMemory(size) {
