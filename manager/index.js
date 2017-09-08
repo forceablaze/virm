@@ -102,10 +102,26 @@ class Manager
                 console.log(hd.toString());
             } catch(e) {
                 if(e === 'EEXIST') {
-                    console.log("Image existed, add");
+                    console.log("Image existed");
                 }
             }
-            category.push(hd);
+
+            let newDisk = true;
+            for(let key in category.list) {
+                let disk = category.list[key];
+                Object.setPrototypeOf(disk,
+                        PROTOTYPE_MAP[category.name]);
+
+                if(disk.path === hd.path) {
+                    newDisk = false;
+                }
+            }
+
+            if(newDisk) {
+                console.log("Save new disk to configuration.");
+                category.push(hd);
+            }
+
             this.saveConfiguration();
         }
     }
