@@ -1,6 +1,7 @@
 'use strict'
 
 import Device from '../device';
+import HardDisk from '../disk';
 import SubProcess from '../../process';
 
 const fs = require('fs');
@@ -15,6 +16,7 @@ class VirtualMachine extends Device
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
             '-cpu': 'Nehalem'
         };
+        this.driveArgsList = [];
     }
 
     createInstance() {
@@ -24,6 +26,11 @@ class VirtualMachine extends Device
             argArray.push(key);
             argArray.push(this._args[key]);
         }
+
+        this.driveArgsList.forEach((args) => {
+            console.log("-drive " + args);
+            argArray.push("-drive " + args);
+        });
 
         this.instance = new SubProcess('qemu-system-x86_64', argArray);
         this.instance.run();
@@ -64,7 +71,22 @@ class VirtualMachine extends Device
         this._args['-vnc'] = address + ":" + num;
     }
 
-    addHardDisk() {
+    addDevice(device) {
+        let proto = Object.getPrototypeOf(device);
+
+        switch(proto) {
+            case HardDisk.prototype:
+                this.addHardDisk(device);
+                break;
+            default:
+                console.log(proto + " not support");
+        }
+        super.addDevice(device);
+    }
+
+    addHardDisk(disk) {
+        this.driveArgsList.push(
+                "file=" + disk.path + ",if=virtio");
     }
 
     addPCIDevice() {

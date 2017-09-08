@@ -159,6 +159,15 @@ class Manager
         return device;
     }
 
+    addDeviceToVM(vm_uuid, categoryName, dev_uuid) {
+        let vm = this.findDevice('vm', vm_uuid);
+        let dev = this.findDevice(categoryName, dev_uuid);
+
+        vm.addDevice(dev);
+
+        this.saveConfiguration();
+    }
+
     start(categoryName, uuid) {
         let device = this.findDevice(categoryName, uuid);
 

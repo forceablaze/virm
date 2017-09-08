@@ -44,6 +44,21 @@ vorpal
     });
 
 vorpal
+    .command('vm add <category> <uuid>', 'Start a device <uuid> to vm.')
+    .option('--uuid <uuid>', 'the uuid of vm.')
+    .alias('a')
+    .action(function(args, cb) {
+        if(args.options.uuid !== undefined) {
+            console.log("add " + args.category + " " + args.uuid +
+                    " to vm " + args.options.uuid);
+            manager.addDeviceToVM(args.options.uuid,
+                    args.category,
+                    args.uuid);
+        }
+        cb();
+    });
+
+vorpal
     .command('start <category> <uuid>', 'Start a device.')
     .alias('s')
     .action(function(args, cb) {
