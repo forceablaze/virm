@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const vorpal = require('vorpal')();
 
 import SubProcess from './module/process';
@@ -7,6 +9,7 @@ import Manager from './manager';
 
 const manager = Manager.getInstance();
 const WORKING_DIR = __dirname;
+
 
 vorpal
     .command('list <category>', 'List category.')
@@ -17,14 +20,25 @@ vorpal
     });
 
 vorpal
-    .command('create <category> <name>', 'Create item.')
+    .command('create <category>', 'Create item.')
+    .option('--name <name>', 'Set the name.')
+    .option('--path <path>', 'Set the path.')
+    .option('--size <size>', 'Set the size (in byte).')
     .alias('c')
     .action(function(args, cb) {
-        console.log("create");
-        if(args.category == 'vm') {
-            manager.createVM(args.name);
-        }
-        else if(args.category == 'pci') {
+        switch(args.category.toString()) {
+            case "vm":
+                manager.createVM(args.options.name);
+                break;
+            case "disk":
+                manager.createDisk(
+                        args.options.path,
+                        args.options.size);
+                break;
+            case "pci":
+                break;
+            default:
+                console.log("Not support " + args.category + " creation.");
         }
         cb();
     });

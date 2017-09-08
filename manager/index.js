@@ -3,6 +3,7 @@
 import Category from './Category';
 import Device from '../module/device/device'
 import VirtualMachine from '../module/device/vm';
+import HardDisk from '../module/device/disk';
 import Configuration from '../module/conf';
 
 const CONF_PATH = 'virmanager.conf'
@@ -10,7 +11,8 @@ const CONF_PATH = 'virmanager.conf'
 let __configuration = new Configuration();
 
 const PROTOTYPE_MAP = {
-    "VM": VirtualMachine.prototype
+    "VM": VirtualMachine.prototype,
+    "DISK": HardDisk.prototype
 };
 
 /* the instance of Manager */
@@ -58,6 +60,7 @@ class Manager
         /* VM list */
         this.categoryList = [];
         this.categoryList.push(new Category('VM', VirtualMachine)); 
+        this.categoryList.push(new Category('DISK', HardDisk)); 
 
         __configuration.push('categories', this.categoryList);
     }
@@ -84,11 +87,38 @@ class Manager
         this.saveConfiguration();
     }
 
+    createDisk(path = undefined, size = undefined) {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == 'DISK'
+        });
+
+
+        if(path !== undefined) {
+            let hd = new HardDisk(path, size);
+
+            try {
+                hd.createHardDisk();
+                console.log(hd.toString());
+            } catch(e) {
+                if(e === 'EEXIST') {
+                    console.log("Image existed, add");
+                }
+            }
+            category.push(hd);
+            this.saveConfiguration();
+        }
+    }
+
     list(categoryName) {
         /* get the category list */
         let category = this.categoryList.find((obj) => {
             return obj.name == categoryName.toUpperCase();
         });
+
+        if(category === undefined)
+            return;
+
         for(let key in category.list) {
             Object.setPrototypeOf(category.list[key], Device.prototype);
             console.log(category.list[key].uuid);
