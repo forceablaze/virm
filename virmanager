@@ -24,6 +24,7 @@ vorpal
     .option('--name <name>', 'Set the name.')
     .option('--path <path>', 'Set the path.')
     .option('--size <size>', 'Set the size (in byte).')
+    .option('--busnum <size>', 'The busnum of PCI device "01:00.0".')
     .alias('c')
     .action(function(args, cb) {
         switch(args.category.toString()) {
@@ -36,6 +37,8 @@ vorpal
                         args.options.size);
                 break;
             case "pci":
+                manager.createPCIDevice(
+                        args.options.busnum);
                 break;
             default:
                 console.log("Not support " + args.category + " creation.");
@@ -75,6 +78,14 @@ vorpal
             manager.stop(args.category, args.uuid);
         cb();
     });
+
+vorpal
+    .command('test')
+    .action(function(args, cb) {
+        manager.test();
+        cb();
+    });
+
 
 vorpal
     .delimiter('virmanager:')

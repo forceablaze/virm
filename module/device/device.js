@@ -1,4 +1,4 @@
-'use-strict'
+'use strict'
 
 import DeviceDescription from '../desc/DeviceDescription'
 
@@ -13,7 +13,7 @@ class Device extends DeviceDescription
     }
 
     addDevice(device) {
-        console.log(Object.getPrototypeOf(device).constructor.name);
+        console.log("addDevice " + Object.getPrototypeOf(device).constructor.name);
         Object.setPrototypeOf(device, Device.prototype);
         this.devices[device.uuid] = device;
     }
@@ -24,6 +24,12 @@ class Device extends DeviceDescription
 
     /* destroy the instance. */
     destroy() {
+    }
+
+    bind() {
+    }
+
+    unbind() {
     }
 }
 

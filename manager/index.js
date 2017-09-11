@@ -4,6 +4,8 @@ import Category from './Category';
 import Device from '../module/device/device'
 import VirtualMachine from '../module/device/vm';
 import HardDisk from '../module/device/disk';
+import PCIDevice from '../module/device/pci';
+import VFIODevice from '../module/device/pci/VFIODevice';
 import Configuration from '../module/conf';
 
 const CONF_PATH = 'virmanager.conf'
@@ -12,7 +14,8 @@ let __configuration = new Configuration();
 
 const PROTOTYPE_MAP = {
     "VM": VirtualMachine.prototype,
-    "DISK": HardDisk.prototype
+    "DISK": HardDisk.prototype,
+    "PCI": PCIDevice.prototype
 };
 
 /* the instance of Manager */
@@ -61,6 +64,7 @@ class Manager
         this.categoryList = [];
         this.categoryList.push(new Category('VM', VirtualMachine)); 
         this.categoryList.push(new Category('DISK', HardDisk)); 
+        this.categoryList.push(new Category('PCI', PCIDevice)); 
 
         __configuration.push('categories', this.categoryList);
     }
@@ -124,6 +128,33 @@ class Manager
 
             this.saveConfiguration();
         }
+    }
+
+    createPCIDevice(busnum = undefined, deviceId = undefined) {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == 'PCI'
+        });
+
+        if(busnum === undefined)
+            return;
+
+        let pcidev = new PCIDevice(busnum);
+
+        let device = null;
+        for(let key in category.list) {
+            device = category.list[key];
+            Object.setPrototypeOf(device,
+                    PCIDevice.prototype);
+            if(device.busnum === busnum) {
+                console.log("specified busnum already existed.");
+                return;
+            }
+        }
+
+        category.push(pcidev);
+
+        this.saveConfiguration();
     }
 
     list(categoryName) {
@@ -194,6 +225,15 @@ class Manager
                 console.log(e);
             }
         }
+    }
+
+    test() {
+        let pcidev = new PCIDevice("03:00.0");
+
+        let vfiodev = new VFIODevice(pcidev);
+        vfiodev.unbind();
+
+        pcidev.bind('rtsx_pci');
     }
 
     static getInstance() {

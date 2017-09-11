@@ -4,6 +4,7 @@ import Device from '../device';
 import HardDisk from '../disk';
 import SubProcess from '../../process';
 
+const path = require('path');
 const fs = require('fs');
 
 class VirtualMachine extends Device
@@ -16,7 +17,6 @@ class VirtualMachine extends Device
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
             '-cpu': 'Nehalem'
         };
-        this.driveArgsList = [];
     }
 
     createInstance() {
@@ -27,12 +27,22 @@ class VirtualMachine extends Device
             argArray.push(this._args[key]);
         }
 
-        this.driveArgsList.forEach((args) => {
-            console.log("-drive " + args);
-            argArray.push("-drive " + args);
+        let driveArgsList = [];
+
+        /* generate the arguments */
+        this.prepareDevice(driveArgsList);
+
+        driveArgsList.forEach((args) => {
+            argArray.push("-drive");
+            argArray.push(args);
         });
 
-        this.instance = new SubProcess('qemu-system-x86_64', argArray);
+        this.instance = new SubProcess('qemu-system-x86_64', argArray,
+                (data) => {
+                    console.log(data);
+                }, (data) => {
+                    console.log(data);
+                });
         this.instance.run();
         console.log(this.instance.pid);
 
@@ -85,11 +95,36 @@ class VirtualMachine extends Device
     }
 
     addHardDisk(disk) {
-        this.driveArgsList.push(
-                "file=" + disk.path + ",if=virtio");
     }
 
     addPCIDevice() {
+    }
+
+    prepareDevice(list) {
+        for(let key in this.devices) {
+            let dev = this.devices[key];
+            Object.setPrototypeOf(dev, Device.prototype);
+
+            switch(dev.type) {
+                case "HardDisk":
+                    this.prepareHardDisk(dev, list);
+                    break;
+                case "PCI":
+                    this.preparePCIDevice(list);
+                default:
+                    console.log("Not supported device type: " + dev.type);
+            }
+        }
+    }
+
+    prepareHardDisk(disk, list) {
+        Object.setPrototypeOf(disk, HardDisk.prototype);
+        list.push("file=" + path.resolve(disk.path) + ",if=virtio");
+    }
+
+    preparePCIDevice() {
+        Object.setPrototypeOf(disk, HardDisk.prototype);
+        list.push("file=" + path.resolve(disk.path) + ",if=virtio");
     }
 
     toString() {
