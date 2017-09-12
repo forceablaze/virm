@@ -51,7 +51,8 @@ class SubProcess
         return {
                 'pid': this.pid,
                 'stdout': this.proc.stdout.toString(),
-                'stderr': this.proc.stdout.toString()
+                'stderr': this.proc.stderr.toString(),
+                'status': this.proc.status
                };
     }
 
