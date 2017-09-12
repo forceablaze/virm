@@ -18,7 +18,9 @@ class VirtualMachine extends Device
             '-name': name,
             '-uuid': `${this.uuid}`,
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
-            '-cpu': 'Nehalem'
+            '-cpu': 'Nehalem',
+            /* boot from disk */
+            '-boot': 'c'
         };
     }
 
