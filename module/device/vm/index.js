@@ -27,15 +27,8 @@ class VirtualMachine extends Device
             argArray.push(this._args[key]);
         }
 
-        let driveArgsList = [];
-
         /* generate the arguments */
-        this.prepareDevice(driveArgsList);
-
-        driveArgsList.forEach((args) => {
-            argArray.push("-drive");
-            argArray.push(args);
-        });
+        this.prepareDevice(argArray);
 
         this.instance = new SubProcess('qemu-system-x86_64', argArray,
                 (data) => {
@@ -110,7 +103,7 @@ class VirtualMachine extends Device
                     this.prepareHardDisk(dev, list);
                     break;
                 case "PCI":
-                    this.preparePCIDevice(list);
+                    this.preparePCIDevice(dev, list);
                 default:
                     console.log("Not supported device type: " + dev.type);
             }
@@ -119,12 +112,18 @@ class VirtualMachine extends Device
 
     prepareHardDisk(disk, list) {
         Object.setPrototypeOf(disk, HardDisk.prototype);
+
+        list.push("-drive");
         list.push("file=" + path.resolve(disk.path) + ",if=virtio");
     }
 
-    preparePCIDevice() {
-        Object.setPrototypeOf(disk, HardDisk.prototype);
-        list.push("file=" + path.resolve(disk.path) + ",if=virtio");
+    preparePCIDevice(pcidev) {
+        Object.setPrototypeOf(pcidev, PCIDevice.prototype);
+        let vfio = new VFIODevice(pcidev);
+        vfio.bind();
+
+        list.push("-device");
+        list.push("vfio-pci,host=" + pcidev.busnum);
     }
 
     toString() {
