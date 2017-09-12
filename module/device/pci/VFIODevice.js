@@ -47,18 +47,6 @@ class VFIODevice extends Device
                 console.log(err.toString());
             }
         }
-
-        let fullBusNum = "0000:" + pcidev.busnum;
-        try {
-            proc = execSync('echo "' + fullBusNum +
-                    '" > /sys/bus/pci/drivers/vfio-pci/bind',
-                    { encoding: 'utf8' });
-        } catch(err) {
-            if(err.status != 0) {
-                console.log(err.status);
-                console.log(err.toString());
-            }
-        }
     }
 
     unbind() {
