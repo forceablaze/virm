@@ -9,7 +9,11 @@ class TapDevice extends Description
 {
     constructor() {
         super();
-        this.name = random_name({ first: true }).toLowerCase();
+        this._name = random_name({ first: true }).toLowerCase();
+    }
+
+    get name() {
+        return this._name;
     }
 
     up() {

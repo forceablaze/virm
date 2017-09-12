@@ -63,11 +63,12 @@ class Manager
 
         __configuration = new Configuration();
 
-        /* VM list */
+        /* device list group by category */
         this.categoryList = [];
         this.categoryList.push(new Category('VM', VirtualMachine)); 
         this.categoryList.push(new Category('DISK', HardDisk)); 
         this.categoryList.push(new Category('PCI', PCIDevice)); 
+        this.categoryList.push(new Category('NET', NetworkDevice));
 
         __configuration.push('categories', this.categoryList);
     }

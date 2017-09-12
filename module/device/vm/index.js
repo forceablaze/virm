@@ -5,6 +5,8 @@ import SubProcess from '../../process';
 import Device from '../device';
 import HardDisk from '../disk';
 import PCIDevice from '../pci';
+import NetworkDevice from '../net';
+
 import VFIODevice from '../pci/VFIODevice';
 
 const path = require('path');
@@ -110,6 +112,9 @@ class VirtualMachine extends Device
                 case "PCIDevice":
                     this.preparePCIDevice(dev, list);
                     break;
+                case "NetworkDevice":
+                    this.prepareNetworkDevice(dev, list);
+                    break;
                 default:
                     console.log("Not supported device type: " + dev.type);
             }
@@ -130,6 +135,18 @@ class VirtualMachine extends Device
 
         list.push("-device");
         list.push("vfio-pci,host=" + pcidev.busnum);
+    }
+
+    prepareNetworkDevice(netdev, list) {
+
+        //  -net tap,ifname=tun0,script=no,downscript=no -net nic,model=virtio
+        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
+        list.push("-net");
+        list.push("tap,ifname=" + netdev.name + "script=no,downscript=no");
+        list.push("-net");
+        list.push("nic,model=virtio");
+
+        netdev.up;
     }
 
     toString() {

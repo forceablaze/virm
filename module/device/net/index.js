@@ -29,6 +29,7 @@ class NetworkDevice extends Device
         return this._netdev;
     }
 
+
     get mac() {
         return this._mac;
     }
@@ -43,6 +44,10 @@ class NetworkDevice extends Device
 
     set ip(ip) {
         this._ip = ip;
+    }
+
+    get name() {
+        return this.netdev.name;
     }
 
     up() {
