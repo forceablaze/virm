@@ -7,16 +7,10 @@ class DeviceDescription extends Description
     constructor(uuid) {
         super();
         this._uuid = uuid;
-        this._type =
-            Object.getPrototypeOf(this).constructor.name;
     }
 
     get uuid() {
         return this._uuid;
-    }
-
-    get type() {
-        return this._type;
     }
 
     toString() {

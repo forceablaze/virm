@@ -4,13 +4,14 @@ import Serialization from '../conf/Serialization'
 
 class Description extends Serialization
 {
-    constructor(description) {
+    constructor() {
         super();
-        this._description = description;
+        this._type =
+            Object.getPrototypeOf(this).constructor.name;
     }
 
-    get description() {
-        return this._description;
+    get type() {
+        return this._type;
     }
 }
 

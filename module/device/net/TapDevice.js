@@ -1,19 +1,19 @@
 'use strict'
 
 import SubProcess from '../../process';
-import NetworkDevice from './index';
+import Description from '../../desc';
 
-class TapDevice extends NetworkDevice
+const random_name = require('node-random-name');
+
+class TapDevice extends Description
 {
     constructor() {
         super();
-        this.name = this.uuid.substring(0, 15);
+        this.name = random_name({ first: true }).toLowerCase();
     }
 
     up() {
-        super.up();
-
-        let tunctl = new SubProcess('tunctl', ['-b', '-t', this.uuid]);
+        let tunctl = new SubProcess('tunctl', ['-b', '-t', this.name]);
         let result = tunctl.runSync();
         console.log(result);
 
@@ -31,8 +31,6 @@ class TapDevice extends NetworkDevice
         let tunctl = new SubProcess('tunctl', ['-d', this.name]);
         let result = tunctl.runSync();
         console.log(result);
-
-        super.down();
     }
 }
 

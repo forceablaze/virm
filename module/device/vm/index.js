@@ -109,6 +109,7 @@ class VirtualMachine extends Device
                     break;
                 case "PCIDevice":
                     this.preparePCIDevice(dev, list);
+                    break;
                 default:
                     console.log("Not supported device type: " + dev.type);
             }

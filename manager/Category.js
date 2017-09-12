@@ -9,9 +9,6 @@ class Category extends Description
         this._name = name;
         this.typeName = type.name;
         this.list = {};
-
-        /* prototype */
-        this.type = type;
     }
 
     get name() {

@@ -6,7 +6,9 @@ import VirtualMachine from '../module/device/vm';
 import HardDisk from '../module/device/disk';
 import PCIDevice from '../module/device/pci';
 import VFIODevice from '../module/device/pci/VFIODevice';
+import NetworkDevice from '../module/device/net';
 import TapDevice from '../module/device/net/TapDevice';
+
 import Configuration from '../module/conf';
 
 const CONF_PATH = 'virmanager.conf'
@@ -236,9 +238,9 @@ class Manager
 
         pcidev.bind('rtsx_pci');
 
-        let tapdev = new TapDevice();
-        tapdev.up();
-        tapdev.down();
+        let netdev= new NetworkDevice(new TapDevice());
+        netdev.up();
+        netdev.down();
     }
 
     static getInstance() {

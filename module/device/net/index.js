@@ -2,14 +2,31 @@
 
 const randomMac = require('random-mac');
 
-import Device from '../device';
+import Device from '../device'
+import Description from '../../desc';
+import TapDevice from './TapDevice';
 
 class NetworkDevice extends Device
 {
-    constructor() {
+    constructor(netdev) {
         super();
+        this._netdev = netdev;
         this.mac = randomMac();
-        this.ip = '0.0.0.0';
+    }
+
+    get netdev() {
+        Object.setPrototypeOf(this._netdev, Description.prototype);
+
+        switch(this._netdev.type) {
+            case 'TapDevice':
+                Object.setPrototypeOf(this._netdev,
+                        TapDevice.prototype);
+                break;
+            default:
+                console(this._netdev.type + " not supported");
+        }
+
+        return this._netdev;
     }
 
     get mac() {
@@ -29,9 +46,11 @@ class NetworkDevice extends Device
     }
 
     up() {
+        this.netdev.up();
     }
 
     down() {
+        this.netdev.down();
     }
 }
 
