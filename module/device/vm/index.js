@@ -1,8 +1,11 @@
 'use strict'
 
+import SubProcess from '../../process';
+
 import Device from '../device';
 import HardDisk from '../disk';
-import SubProcess from '../../process';
+import PCIDevice from '../pci';
+import VFIODevice from '../pci/VFIODevice';
 
 const path = require('path');
 const fs = require('fs');
@@ -102,7 +105,7 @@ class VirtualMachine extends Device
                 case "HardDisk":
                     this.prepareHardDisk(dev, list);
                     break;
-                case "PCI":
+                case "PCIDevice":
                     this.preparePCIDevice(dev, list);
                 default:
                     console.log("Not supported device type: " + dev.type);
@@ -117,7 +120,7 @@ class VirtualMachine extends Device
         list.push("file=" + path.resolve(disk.path) + ",if=virtio");
     }
 
-    preparePCIDevice(pcidev) {
+    preparePCIDevice(pcidev, list) {
         Object.setPrototypeOf(pcidev, PCIDevice.prototype);
         let vfio = new VFIODevice(pcidev);
         vfio.bind();
