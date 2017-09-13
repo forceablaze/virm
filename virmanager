@@ -39,6 +39,8 @@ vorpal
             case "pci":
                 manager.createPCIDevice(
                         args.options.busnum);
+            case "net":
+                manager.createNetworkDevice();
                 break;
             default:
                 console.log("Not support " + args.category + " creation.");

@@ -57,6 +57,10 @@ class NetworkDevice extends Device
     down() {
         this.netdev.down();
     }
+
+    toString() {
+        return this.name;
+    }
 }
 
 export default NetworkDevice;

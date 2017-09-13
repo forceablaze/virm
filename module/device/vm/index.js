@@ -84,13 +84,6 @@ class VirtualMachine extends Device
     addDevice(device) {
         let proto = Object.getPrototypeOf(device);
 
-        switch(proto) {
-            case HardDisk.prototype:
-                this.addHardDisk(device);
-                break;
-            default:
-                console.log(proto + " not support");
-        }
         super.addDevice(device);
     }
 
@@ -121,6 +114,21 @@ class VirtualMachine extends Device
         }
     }
 
+    unprepareDevice(list) {
+        for(let key in this.devices) {
+            let dev = this.devices[key];
+            Object.setPrototypeOf(dev, Device.prototype);
+
+            switch(dev.type) {
+                case "NetworkDevice":
+                    this.prepareNetworkDevice(dev, list);
+                    break;
+                default:
+                    console.log("Not supported device type: " + dev.type);
+            }
+        }
+    }
+
     prepareHardDisk(disk, list) {
         Object.setPrototypeOf(disk, HardDisk.prototype);
 
@@ -138,16 +146,21 @@ class VirtualMachine extends Device
     }
 
     prepareNetworkDevice(netdev, list) {
-
-        //  -net tap,ifname=tun0,script=no,downscript=no -net nic,model=virtio
         Object.setPrototypeOf(netdev, NetworkDevice.prototype);
-        list.push("-net");
-        list.push("tap,ifname=" + netdev.name + "script=no,downscript=no");
-        list.push("-net");
-        list.push("nic,model=virtio");
+        list.push("-netdev");
+        list.push("type=tap,id=net0,ifname=" + netdev.name + ",script=no,downscript=no");
+        list.push("-device");
+        list.push("virtio-net-pci,netdev=net0,mac=" + netdev.mac);
 
         netdev.up;
     }
+
+    unprepareNetworkDevice(netdev, list) {
+        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
+
+        netdev.down;
+    }
+
 
     toString() {
         return this._args['-name'] + ":" + this._args['-uuid'];

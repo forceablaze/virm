@@ -18,7 +18,8 @@ let __configuration = new Configuration();
 const PROTOTYPE_MAP = {
     "VM": VirtualMachine.prototype,
     "DISK": HardDisk.prototype,
-    "PCI": PCIDevice.prototype
+    "PCI": PCIDevice.prototype,
+    "NET": NetworkDevice.prototype
 };
 
 /* the instance of Manager */
@@ -45,7 +46,6 @@ class Manager
             this.categoryList.forEach((element) => {
                 Object.setPrototypeOf(element, Category.prototype);
             });
-
         } catch(e) {
             if(e.code == 'ENOENT') {
                 console.log("configuration file not existed");
@@ -158,6 +158,19 @@ class Manager
 
         category.push(pcidev);
 
+        this.saveConfiguration();
+    }
+
+    createNetworkDevice() {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == 'NET'
+        });
+
+        let netdev= new NetworkDevice(new TapDevice());
+        console.log(netdev);
+
+        category.push(netdev);
         this.saveConfiguration();
     }
 
