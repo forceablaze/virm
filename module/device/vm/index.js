@@ -34,6 +34,19 @@ class VirtualMachine extends Device
             argArray.push(this._args[key]);
         }
 
+        /* qemu agent setting */
+
+        argArray.push('-chardev');
+        argArray.push('socket,path=/tmp/qdm.' +
+                this.uuid.substring(0, 8) + '.sock,server,nowait,id=qda0');
+
+        argArray.push('-device');
+        argArray.push('virtio-serial');
+
+        /* the chardev name must set to org.qemu.guest_agent.0 (agent default value) */
+        argArray.push('-device');
+        argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
+
         /* generate the arguments */
         this.prepareDevice(argArray);
 
