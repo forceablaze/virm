@@ -253,10 +253,10 @@ class Manager
         let device = this.findDevice(categoryName, uuid);
 
         if(device) {
-            console.log("destroy: " + device.toString());
+            console.log("stop: " + device.toString());
 
             try {
-                device.destroy();
+                device.stop();
             } catch(e) {
                 console.log(e);
             }

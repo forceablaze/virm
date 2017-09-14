@@ -18,18 +18,12 @@ class Device extends DeviceDescription
         this.devices[device.uuid] = device;
     }
 
-    /* create an instance. */
+    /* run an instance. */
     start() {
     }
 
-    /* destroy the instance. */
-    destroy() {
-    }
-
-    bind() {
-    }
-
-    unbind() {
+    /* stop the instance. */
+    stop() {
     }
 }
 

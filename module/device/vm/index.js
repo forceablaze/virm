@@ -71,7 +71,7 @@ class VirtualMachine extends Device
         return this;
     }
 
-    destroy() {
+    stop() {
         try {
             if(this.instance)
                 this.instance.interrupt();
