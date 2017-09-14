@@ -35,7 +35,6 @@ class VirtualMachine extends Device
         }
 
         /* qemu agent setting */
-
         argArray.push('-chardev');
         argArray.push('socket,path=/tmp/qdm.' +
                 this.uuid.substring(0, 8) + '.sock,server,nowait,id=qda0');
@@ -165,15 +164,13 @@ class VirtualMachine extends Device
         list.push("-device");
         list.push("virtio-net-pci,netdev=net0,mac=" + netdev.mac);
 
-        netdev.up;
+        netdev.up();
     }
 
     unprepareNetworkDevice(netdev, list) {
         Object.setPrototypeOf(netdev, NetworkDevice.prototype);
-
         netdev.down;
     }
-
 
     toString() {
         return this._args['-name'] + ":" + this._args['-uuid'];

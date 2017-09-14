@@ -21,7 +21,6 @@ class TapDevice extends Description
         let result = tunctl.runSync();
         console.log(result);
 
-
         let ifconf = new SubProcess('ifconfig', [this.name, 'up']);
         result = ifconf.runSync();
         console.log(result);

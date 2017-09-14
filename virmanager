@@ -25,6 +25,10 @@ vorpal
     .option('--path <path>', 'Set the path.')
     .option('--size <size>', 'Set the size (in byte).')
     .option('--busnum <size>', 'The busnum of PCI device "01:00.0".')
+    .option('--net <net>', 'The route target.')
+    .option('--mask <mask>', 'The netmask of the network.')
+    .option('--gw <gw>', 'Route packets via a gateway.')
+    .option('--dev <netdev_uuid>', 'Set the route to be associated with the specified device.')
     .alias('c')
     .action(function(args, cb) {
         switch(args.category.toString()) {
@@ -41,6 +45,13 @@ vorpal
                         args.options.busnum);
             case "net":
                 manager.createNetworkDevice();
+                break;
+            case "route":
+                manager.createRouteDevice(
+                        args.options.net,
+                        args.options.mask,
+                        args.options.gw,
+                        args.options.dev);
                 break;
             default:
                 console.log("Not support " + args.category + " creation.");

@@ -6,6 +6,7 @@ import VirtualMachine from '../module/device/vm';
 import HardDisk from '../module/device/disk';
 import PCIDevice from '../module/device/pci';
 import VFIODevice from '../module/device/pci/VFIODevice';
+import RouteDevice from '../module/device/net/route';
 import NetworkDevice from '../module/device/net';
 import TapDevice from '../module/device/net/TapDevice';
 
@@ -19,7 +20,8 @@ const PROTOTYPE_MAP = {
     "VM": VirtualMachine.prototype,
     "DISK": HardDisk.prototype,
     "PCI": PCIDevice.prototype,
-    "NET": NetworkDevice.prototype
+    "NET": NetworkDevice.prototype,
+    "ROUTE": RouteDevice.prototype
 };
 
 /* the instance of Manager */
@@ -69,6 +71,7 @@ class Manager
         this.categoryList.push(new Category('DISK', HardDisk)); 
         this.categoryList.push(new Category('PCI', PCIDevice)); 
         this.categoryList.push(new Category('NET', NetworkDevice));
+        this.categoryList.push(new Category('ROUTE', RouteDevice));
 
         __configuration.push('categories', this.categoryList);
     }
@@ -174,6 +177,22 @@ class Manager
         this.saveConfiguration();
     }
 
+    createRouteDevice(net, mask, gw, netdev_uuid) {
+        /* get the category list */
+        let category = this.categoryList.find((obj) => {
+            return obj.name == 'ROUTE'
+        });
+
+        console.log(arguments);
+        let netdev = this.findDevice('net', netdev_uuid);
+
+        let route = new RouteDevice(net, mask, gw, netdev);
+        console.log(route);
+
+        category.push(route);
+        this.saveConfiguration();
+    }
+
     list(categoryName) {
         /* get the category list */
         let category = this.categoryList.find((obj) => {
@@ -245,15 +264,22 @@ class Manager
     }
 
     test() {
+        /*
         let pcidev = new PCIDevice("03:00.0");
 
         let vfiodev = new VFIODevice(pcidev);
         vfiodev.unbind();
 
         pcidev.bind('rtsx_pci');
-
+        */
         let netdev= new NetworkDevice(new TapDevice());
         netdev.up();
+        let route = new RouteDevice(
+                '192.168.68.137',
+                '255.255.255.255', undefined, netdev);
+        route.up();
+        route.down();
+
         netdev.down();
     }
 
