@@ -1,5 +1,7 @@
 'use strict'
 
+import CONF from '../../../conf';
+
 import Device from '../device';
 import SubProcess from '../../process';
 
@@ -38,7 +40,7 @@ class HardDisk extends Device
             `${this.size}`
         ];
 
-        let process = new SubProcess('qemu-img', args);
+        let process = new SubProcess(CONF.BIN_PATH + '/qemu-img', args);
         process.run();
     }
 

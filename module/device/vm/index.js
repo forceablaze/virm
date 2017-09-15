@@ -1,5 +1,7 @@
 'use strict'
 
+import CONF from '../../../conf';
+
 import SubProcess from '../../process';
 
 import Device from '../device';
@@ -49,7 +51,7 @@ class VirtualMachine extends Device
         /* generate the arguments */
         this.prepareDevice(argArray);
 
-        this.instance = new SubProcess('qemu-system-x86_64', argArray,
+        this.instance = new SubProcess(CONF.BIN_PATH + '/qemu-system-x86_64', argArray,
                 (data) => {
                     console.log(data);
                 }, (data) => {
