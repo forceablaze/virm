@@ -25,7 +25,9 @@ try  {
 const CONF = {
     INSTALL_PATH: install_path,
 
-    BIN_PATH: install_path + '/usr/bin'
+    BIN_PATH: install_path + '/usr/bin',
+
+    SOCKET_PATH: install_path + '/var/run/virmanager.sock'
 };
 
 export default CONF;
