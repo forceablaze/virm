@@ -5,10 +5,22 @@ const QPKG_CONF_PATH = '/etc/config/qpkg.conf';
 
 import SubProcess from '../module/process';
 
-const install_path =
-    new SubProcess('/sbin/getcfg',
-        [NAME, 'Install_Path', '-f', QPKG_CONF_PATH])
-        .runSync().stdout.toString().trim();
+let install_path = '';
+
+try  {
+    let getcfg = new SubProcess('/sbin/getcfg',
+            [NAME, 'Install_Path', '-f', QPKG_CONF_PATH])
+            .runSync();
+
+    install_path = getcfg.stdout.toString().trim();
+} catch(e) {
+    switch(e.code) {
+        case 'ENOENT':
+            install_path = '';
+            break;
+        default:
+    }
+}
 
 const CONF = {
     INSTALL_PATH: install_path,

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import CONF from './conf'
 import SubProcess from './module/process';
 import DeviceDescription from './module/desc/DeviceDescription'
 import VirtualMachine from './module/device/vm'
@@ -7,6 +8,8 @@ import Configuration from './module/conf';
 import Category from './manager/Category';
 
 const fs = require('fs');
+
+console.log(CONF);
 
 let vm = new VirtualMachine('New VM', (data) => {console.log(data)});
 

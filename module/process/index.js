@@ -48,6 +48,12 @@ class SubProcess
 
         this._pid = this.proc.pid;
 
+        if(this.proc.stdout === null) {
+            let err = new Error('Execute process failed.');
+            err.code = 'ENOENT';
+            throw err;
+        }
+
         return {
                 'pid': this.pid,
                 'stdout': this.proc.stdout.toString(),
