@@ -95,6 +95,10 @@ class VirtualMachine extends Device
         this._args['-vnc'] = address + ":" + num;
     }
 
+    getAgentSocketPath() {
+        return '/tmp/qdm.' + this.uuid.substring(0, 8) + '.sock';
+    }
+
     addDevice(device) {
         let proto = Object.getPrototypeOf(device);
 

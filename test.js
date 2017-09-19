@@ -26,77 +26,22 @@ try {
 let p1 = new Promise((resolve, reject) => {
         setTimeout(function() {
             resolve("Success");
-            vm.destroy();
+            vm.stop();
 
         }, 3000)
     }
 )
 
-
-let conf = new Configuration();
-conf.serialize("conf_test");
-
-let obj = conf.unserialize("conf_test2");
-console.log(obj);
-
-
-let objString;
-try {
-    objString = fs.readFileSync("conf_test2", 'utf8').toString();
-} catch(e) {
-    console.log(e);
-}
-
-let conf2 = new Configuration();
-console.log(Configuration.prototype);
-console.log(conf2.__proto__);
-console.log("imported");
-conf2.importConfiguration(obj);
-vm = conf2.get('a');
-vm.__proto__ = VirtualMachine.prototype;
-
-console.log(vm.uuid);
-
-
 let array = [];
-
 let object = {};
 
 object['array'] = array;
-
 console.log(object['array'].__proto__);
-
 let category = new Category('VM', VirtualMachine);
 console.log(category);
 console.log(VirtualMachine.name);
 
 console.log(JSON.stringify(category, null, 2));
-console.log(Object.getPrototypeOf(conf));
-
-let expr = "Oranges";
-switch (expr) {
-  case 'Oranges':
-    console.log('Oranges are $0.59 a pound.');
-    break;
-  case 'Apples':
-    console.log('Apples are $0.32 a pound.');
-    break;
-  case 'Bananas':
-    console.log('Bananas are $0.48 a pound.');
-    break;
-  case 'Cherries':
-    console.log('Cherries are $3.00 a pound.');
-    break;
-  case 'Mangoes':
-  case 'Papayas':
-    console.log('Mangoes and papayas are $2.79 a pound.');
-    break;
-  default:
-    console.log('Sorry, we are out of ' + expr + '.');
-}
-
-console.log("Is there anything else you'd like?");
-
 
 function isTrue() {
     return false;
@@ -104,4 +49,67 @@ function isTrue() {
 
 if(isTrue()) {
     console.log("TRUE");
+}
+
+var intervalID = 0;
+
+var wait = 
+    ms => new Promise(
+        r => setTimeout(r, ms)
+    );
+
+var repeat = 
+    (ms, func) => new Promise(
+        r => (
+            intervalID = setInterval(func, ms), 
+            wait(ms).then(r)
+        )
+    );
+
+var myfunction = 
+    () => new Promise(
+        r => r(console.log('repeating...'))
+    );
+
+var stopAfter5Secs = 
+    () => new Promise(
+        r => r(setTimeout(() => { 
+                    clearInterval(intervalID);
+                    console.log('repeat end') 
+               } , 5000))
+    );
+
+repeat(1000, () => Promise.all([myfunction()])) // 1000 miliseconds = 1 second
+.then(stopAfter5Secs())  // starts timer to end repetitions
+.then(console.log('repeat start')); // informs that all actions were started correctly and we are waiting for them to finish
+
+var t = 500;
+var max = 5;
+
+function rejectDelay(reason) {
+	return new Promise(function(resolve, reject) {
+		setTimeout(reject.bind(null, reason), t); 
+	});
+}
+
+var p = Promise.reject();
+for(var i=0; i<max; i++) {
+	p = p.catch(attempt).catch(rejectDelay);
+}
+p = p.then(processResult).catch(errorHandler);
+
+
+function attempt() {
+	var rand = Math.random();
+	if(rand > 0.5) {
+		throw rand;
+	} else {
+		return rand;
+	}
+}
+function processResult(res) {
+	console.log(res);
+}
+function errorHandler(err) {
+	console.error(err);
 }

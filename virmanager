@@ -10,7 +10,6 @@ import Manager from './manager';
 const manager = Manager.getInstance();
 const WORKING_DIR = __dirname;
 
-
 vorpal
     .command('list <category>', 'List category.')
     .alias('l')
