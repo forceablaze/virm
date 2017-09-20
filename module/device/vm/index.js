@@ -77,6 +77,7 @@ class VirtualMachine extends Device
         try {
             if(this.instance)
                 this.instance.interrupt();
+            this.unprepareDevice();
         } catch(e) {
             throw e;
         }
@@ -132,14 +133,17 @@ class VirtualMachine extends Device
         }
     }
 
-    unprepareDevice(list) {
+    unprepareDevice() {
         for(let key in this.devices) {
             let dev = this.devices[key];
             Object.setPrototypeOf(dev, Device.prototype);
 
             switch(dev.type) {
                 case "NetworkDevice":
-                    this.prepareNetworkDevice(dev, list);
+                    this.unprepareNetworkDevice(dev);
+                    break;
+                case "PCIDevice":
+                    this.unpreparePCIDevice(dev);
                     break;
                 default:
                     console.log("Not supported device type: " + dev.type);
@@ -173,9 +177,14 @@ class VirtualMachine extends Device
         netdev.up();
     }
 
-    unprepareNetworkDevice(netdev, list) {
+    unprepareNetworkDevice(netdev) {
         Object.setPrototypeOf(netdev, NetworkDevice.prototype);
-        netdev.down;
+        netdev.down();
+    }
+
+    unpreparePCIDevice(pcidev) {
+        Object.setPrototypeOf(netdev, PCIDevice.prototype);
+        pcidev.unbind();
     }
 
     toString() {
