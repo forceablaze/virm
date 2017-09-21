@@ -386,7 +386,7 @@ class Manager
 
         let tryGetNICAddress = () => {
             getNICAddress('ipv4').then((ip) => {
-                console.log('Get ip address: ' + ip);
+                console.log('ipv4:' + ip);
             }).catch((err) => {
                 delay(1000)('retry').then((result) => {
                     tryGetNICAddress();

@@ -5,8 +5,10 @@
 import CONF from './conf';
 
 const net = require('net');
+const fs = require('fs');
 const { spawn } = require('child_process');
 
+const log = fs.createWriteStream(CONF.LOG_PATH + '/virmanager.log');
 const virmanager = spawn(CONF.BIN_PATH + '/npm', ['run', 'dev']);
 
 const unixServer = net.createServer(function(client) {
@@ -28,12 +30,20 @@ const unixServer = net.createServer(function(client) {
         virmanager.stdin.write(data);
     });
 
-    virmanager.stdout.on('data', (data) => {
+    let dataListerer = (data) => {
         client.write(data);
-    });
+    }
+    virmanager.stdout.pipe(log);
+    virmanager.stdout.on('data', dataListerer);
 
     client.on('end', () => {
         console.log('client disconnected');
+        virmanager.stdout.removeListener('data', dataListerer);
+    });
+
+    client.on('error', (err) => {
+        console.log(err);
+        client.destroy();
     });
 });
 

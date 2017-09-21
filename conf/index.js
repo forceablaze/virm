@@ -25,11 +25,13 @@ try  {
 const CONF = {
     INSTALL_PATH: install_path,
 
-    IMAGE_PATH: '/home/bedivere/damain',
+    IMAGE_PATH: install_path + '/var/images',
 
     BIN_PATH: install_path + '/usr/bin',
 
-    SOCKET_PATH: install_path + '/var/run/virmanager.sock'
+    SOCKET_PATH: install_path + '/var/run/virmanager.sock',
+
+    LOG_PATH: install_path + '/var/log'
 };
 
 export default CONF;

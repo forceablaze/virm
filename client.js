@@ -1,74 +1,54 @@
+#!/usr/bin/env node
+
+import CONF from './conf';
+
 const net = require('net');
+const readline = require('readline');
+const options = require('options-parser');
 
-import Agent from './module/agent';
-import VirtualMachine from './module/device/vm';
-import HardDisk from './module/device/disk';
-import NetworkDevice from './module/device/net';
-import TapDevice from './module/device/net/TapDevice';
-import { delay } from './utils';
-
-
-let vm = new VirtualMachine('New VM', (data) => {console.log(data)});
-vm.setCPUCore(2);
-vm.setMemory(512);
-//vm.addDevice(new HardDisk('./test.qcow2'));
-
-let netdev= new NetworkDevice(new TapDevice());
-vm.addDevice(netdev);
-
-const client = new Agent(vm);
-
+let opts = null;
 try {
-    vm.start();
-} catch(e) {
-    console.log(e);
+    opts = options.parse({
+        cmd: { default: 'help' },
+        timeout: { default: 3000 }
+    });
+} catch(err) {
+    process.exit(10);
 }
+const command = opts['opt']['cmd'];
+const timeout = opts['opt']['timeout'];
 
+const client = new net.Socket();
+client.setEncoding('utf8');
 
-let p1 = new Promise((resolve, reject) => {
-        setTimeout(function() {
-            resolve("Success");
-            vm.stop();
-        }, 6000000)
+process.on('SIGINT', () => {
+    rl.close();
+    client.destroy();
+    process.exit(0);
+});
+
+/* parse each line */
+const rl = readline.createInterface({
+    input: client
+});
+
+rl.on('line', (line) => {
+    if(line.substr(10, 11) === 'virmanager:') {
     }
-)
+    else console.log(line);
+});
 
-let id = 1234;
-let cb = () => {
+let run = () => {
+    client.write(command + '\n');
+};
 
-    /*
-    client.getNetworkInterfaces().then((value) => {
-        console.log('value: ' + value);
-    }).catch((err) => {
-        console.log('error' + err);
-    });
+client.connect(CONF.SOCKET_PATH, () => {
+    run();
+});
 
-    client.getNetworkInterfacebyDeviceName('eth0')
-        .then((item) => {
-        console.log(item);
-    }).catch((err) => {
-    });
-    client.sendTask('/sbin/ifconfig')
-        .catch((err) => {
-            if(err.errno === 'EAGAIN')
-                console.log('Please try again');
-        });
-    */
-}
-
-
-    let repeat = () => {
-        client.getAgentVersion().then((value) => {
-            console.log('value: ' + value);
-        }).catch((err) => {
-            delay(2000)('reconnect').then((result) => {
-                console.log(result);
-                repeat();
-            });
-        });
-    };
-
-    repeat();
-
-
-setInterval(cb, 10000);
+new Promise((resolve, reject) => {
+    setTimeout(() => {
+        rl.close();
+        client.destroy();
+    }, timeout);
+});
