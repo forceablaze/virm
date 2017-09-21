@@ -9,7 +9,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 
 const log = fs.createWriteStream(CONF.LOG_PATH + '/virmanager.log');
-const virmanager = spawn(CONF.BIN_PATH + '/npm', ['run', 'dev']);
+const virmanager = spawn(CONF.BIN_PATH + '/npm', ['run', 'virm']);
 
 const unixServer = net.createServer(function(client) {
     console.log('client connected');
