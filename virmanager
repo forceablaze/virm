@@ -92,9 +92,24 @@ vorpal
     });
 
 vorpal
-    .command('test')
+    .command('agent <uuid>', 'Create a client to control specified vm.')
+    .alias('A')
     .action(function(args, cb) {
-        manager.test();
+        if(args.uuid !== undefined)
+            manager.createAgent(args.uuid);
+        cb();
+    });
+
+vorpal
+    .command('test')
+    .option('--uuid <uuid>', 'The uuid of vm.')
+    .option('--ip <ip>', 'The ip set to vm')
+    .action(function(args, cb) {
+        //manager.createDAMain();
+        manager.startupDAMain(
+                args.options.uuid,
+                args.options.ip);
+        //manager.test(args.options.uuid);
         cb();
     });
 

@@ -11,6 +11,8 @@ import NetworkDevice from '../net';
 
 import VFIODevice from '../pci/VFIODevice';
 
+import { delay } from '../../../utils';
+
 const path = require('path');
 const fs = require('fs');
 
@@ -77,7 +79,10 @@ class VirtualMachine extends Device
         try {
             if(this.instance)
                 this.instance.interrupt();
-            this.unprepareDevice();
+
+            delay(500)('done').then((value) => {
+                this.unprepareDevice();
+            });
         } catch(e) {
             throw e;
         }

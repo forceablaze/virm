@@ -25,6 +25,8 @@ try  {
 const CONF = {
     INSTALL_PATH: install_path,
 
+    IMAGE_PATH: '/home/bedivere/damain',
+
     BIN_PATH: install_path + '/usr/bin',
 
     SOCKET_PATH: install_path + '/var/run/virmanager.sock'

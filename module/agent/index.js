@@ -17,6 +17,7 @@ class Agent {
             /* if this socket do any task, destory*/
             client.setTimeout(1000);
             client.on('timeout', () => {
+                client.end();
                 client.destroy();
                 reject(new Error('ETIMEOUT'));
             });
@@ -58,7 +59,6 @@ class Agent {
 
             this.createSocket()
             .then((client) => {
-                client.write(req);
                 client.on('data', (data) => {
                     try {
                         let obj = JSON.parse(data);
@@ -68,6 +68,13 @@ class Agent {
                         reject(err);
                     }
                 });
+
+                client.write(req);
+
+                setTimeout(() => {
+                    client.destroy();
+                    reject(new Error('ETIMEOUT'));
+                }, 1500);
             })
             .catch((err) => {
                 reject(err);
@@ -99,6 +106,7 @@ class Agent {
         });
     }
 
+    /* get all fo the network interface of the guest */
     getNetworkInterfacebyDeviceName(name) {
         return new Promise((resolve, reject) => {
             this.getNetworkInterfaces()
@@ -114,7 +122,7 @@ class Agent {
     }
 
     /* write <command> to /tmp/task.sh */
-    sendTask(command) {
+    sendTask(command, result) {
         return new Promise((resolve, reject) => {
             this.sendAgentRequest(
                 '{"execute": "guest-file-open",' +
@@ -137,6 +145,7 @@ class Agent {
                         '{"execute": "guest-file-close",' +
                         '"arguments": {"handle": ' + handle + '}}')
                     .then((obj) => {
+                        resolve(result);
                     }).catch((err) => { reject(err) });
                 }).catch((err) => { reject(err) });
             }).catch((err) => { reject(err) });
