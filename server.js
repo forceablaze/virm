@@ -8,6 +8,15 @@ const net = require('net');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+let pidFile = fs.createWriteStream(CONF.INSTALL_PATH + '/var/run/virm.pid');
+pidFile.write(process.pid.toString());
+pidFile.end();
+
+process.on('SIGINT', () => {
+    fs.unlinkSync(CONF.INSTALL_PATH + '/var/run/virm.pid');
+    process.exit(0);
+});
+
 const log = fs.createWriteStream(CONF.LOG_PATH + '/virmanager.log');
 const virmanager = spawn(CONF.BIN_PATH + '/npm', ['run', 'virm']);
 
