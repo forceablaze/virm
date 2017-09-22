@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import CONF from './conf';
 
 const net = require('net');
