@@ -7,8 +7,9 @@
     "test": "babel-node test.js",
     "server": "babel-node server.js",
     "client": "babel-node client.js",
-    "virm": "babel-node virmanager",
-    "dev": "babel-node virmanager.js"
+    "virm": "babel-node virm",
+    "build": "babel-node build.js",
+    "dev": "babel-node virm.js"
   },
   "repository": {
     "type": "git",
