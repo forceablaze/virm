@@ -18,10 +18,12 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.11.0",
+    "nexe": "^2.0.0-rc.6",
     "node-random-name": "^1.0.1",
     "node-serialize": "0.0.4",
     "options-parser": "^0.4.0",
     "random-mac": "0.0.4",
+    "typescript": "^2.5.2",
     "uuid": "^3.1.0",
     "vorpal": "^1.12.0"
   },
