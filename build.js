@@ -2,6 +2,17 @@
 
 const { compile } = require('nexe');
 
+let compileClient = () => {
+    console.log('compile client.js');
+    compile({
+      input: './client.js',
+      build: true,
+      loglevel: 'verbose'
+    }).then(() => {
+      console.log('compile client.js success')
+    })
+}
+
 console.log('compile server.js');
 compile({
   input: './server.js',
@@ -20,13 +31,5 @@ compile({
   */
 }).then(() => {
   console.log('compile server.js success')
-})
-
-console.log('compile client.js');
-compile({
-  input: './client.js',
-  build: true,
-  loglevel: 'verbose'
-}).then(() => {
-  console.log('compile client.js success')
+  compileClient();
 })
