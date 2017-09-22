@@ -12,10 +12,13 @@ let pidFile = fs.createWriteStream(CONF.INSTALL_PATH + '/var/run/virm.pid');
 pidFile.write(process.pid.toString());
 pidFile.end();
 
-process.on('SIGINT', () => {
+
+let exitProcess = () => {
     fs.unlinkSync(CONF.INSTALL_PATH + '/var/run/virm.pid');
     process.exit(0);
-});
+};
+
+process.on('SIGINT', exitProcess);
 
 const log = fs.createWriteStream(CONF.LOG_PATH + '/virmanager.log');
 const virmanager = spawn(CONF.BIN_PATH + '/npm', ['run', 'virm']);
@@ -32,7 +35,7 @@ const unixServer = net.createServer(function(client) {
 
         if(data.toString().trim() === 'stop server') {
             console.log('stop server from client command');
-            process.exit();
+            exitProcess();
             return;
         }
 
