@@ -13,8 +13,12 @@ import VFIODevice from '../pci/VFIODevice';
 
 import { delay } from '../../../utils';
 
+const portfinder = require('portfinder');
 const path = require('path');
 const fs = require('fs');
+
+/* VNC base port */
+portfinder.basePort = 5900;
 
 class VirtualMachine extends Device
 {
@@ -31,38 +35,67 @@ class VirtualMachine extends Device
     }
 
     createInstance() {
-        let argArray = [];
-        for(let key in this._args) {
-            console.log("key: " + key + " value: " + this._args[key]);
-            argArray.push(key);
-            argArray.push(this._args[key]);
-        }
+        return new Promise((resolve, reject) => {
 
-        /* qemu agent setting */
-        argArray.push('-chardev');
-        argArray.push('socket,path=/tmp/qdm.' +
-                this.uuid.substring(0, 8) + '.sock,server,nowait,id=qda0');
+            let argArray = [];
+            for(let key in this._args) {
+                console.log("key: " + key + " value: " + this._args[key]);
+                argArray.push(key);
+                argArray.push(this._args[key]);
+            }
 
-        argArray.push('-device');
-        argArray.push('virtio-serial');
+            /* qemu agent setting */
+            argArray.push('-chardev');
+            argArray.push('socket,path=/tmp/qdm.' +
+                    this.uuid.substring(0, 8) + '.sock,server,nowait,id=qda0');
 
-        /* the chardev name must set to org.qemu.guest_agent.0 (agent default value) */
-        argArray.push('-device');
-        argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
+            argArray.push('-device');
+            argArray.push('virtio-serial');
 
-        /* generate the arguments */
-        this.prepareDevice(argArray);
+            /* the chardev name must set to org.qemu.guest_agent.0 (agent default value) */
+            argArray.push('-device');
+            argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
 
-        this.instance = new SubProcess(CONF.BIN_PATH + '/qemu-system-x86_64', argArray,
+            /* generate the arguments */
+            this.prepareDevice(argArray);
+
+            /* set the VNC */
+            if(this._args['-vnc'] === undefined) {
+                portfinder.getPortPromise()
+                    .then((port) => {
+                        let index = port - 5900;
+                        argArray.push('-vnc');
+                        argArray.push(':' + index.toString());
+
+                        this.__createInstance(argArray)
+                            .then((instance) => {
+                                resolve(instance);
+                            });
+                    })
+                    .catch((err) => {
+                        reject(new Error('EADDRINUSE'));
+                    });
+            } else {
+                this.__createInstance(argArray)
+                    .then((instance) => {
+                        resolve(instance);
+                    });
+            }
+        });
+    }
+
+    __createInstance(args) {
+        return new Promise((resolve, reject) => {
+            this.instance = new SubProcess(CONF.BIN_PATH + '/qemu-system-x86_64', args,
                 (data) => {
                     console.log(data);
                 }, (data) => {
                     console.log(data);
                 });
-        this.instance.run();
-        console.log(this.instance.pid);
+            this.instance.run();
 
-        return this.instance;
+            resolve(this.instance);
+        });
     }
 
     start() {
@@ -70,9 +103,16 @@ class VirtualMachine extends Device
             throw 'Device already started.';
         }
 
-        this.createInstance();
-
-        return this;
+        return new Promise((resolve) => {
+            try {
+                this.createInstance()
+                    .then((instance) => {
+                        resolve(instance);
+                    });
+            } catch(err) {
+                resolve(err);
+            }
+        });
     }
 
     stop() {
