@@ -94,6 +94,27 @@ class Agent {
         });
     }
 
+    getNICAddress(name) {
+        return (type) => {
+            return new Promise((resolve, reject) => {
+                this.getNetworkInterfacebyDeviceName(name)
+                .then((nic) => {
+                    if(nic['ip-addresses'] === undefined) {
+                        reject(new Error('EAGAIN'));
+                        return;
+                    }
+                    nic['ip-addresses'].forEach((item) => {
+                        if(item['ip-address'] !== undefined &&
+                            item['ip-address-type'] === type) {
+                            resolve(item['ip-address']);
+                            return;
+                        }
+                    });
+                });
+            });
+        }
+    };
+
     getNetworkInterfaces() {
         return new Promise((resolve, reject) => {
             this.sendAgentRequest('{"execute": "guest-network-get-interfaces"}')
