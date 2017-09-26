@@ -110,6 +110,9 @@ class Agent {
                             return;
                         }
                     });
+                })
+                .catch((err) => {
+                    reject(err);
                 });
             });
         }

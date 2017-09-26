@@ -99,12 +99,40 @@ vorpal
     });
 
 vorpal
+    .command('create damain')
+    .action(function(args, cb) {
+        manager.createDAMain();
+        cb();
+    });
+
+vorpal
     .command('damain <uuid>')
     .option('--ip <ip>', 'The ip set to vm')
     .action(function(args, cb) {
         manager.startupDAMain(
                 args.uuid,
                 args.options.ip);
+        cb();
+    });
+
+vorpal
+    .command('connect damain <uuid>')
+    .action(function(args, cb) {
+        manager.connectDAMain(args.uuid);
+        cb();
+    });
+
+vorpal
+    .command('disconnect damain <uuid>')
+    .action(function(args, cb) {
+        manager.disconnectDAMain(args.uuid);
+        cb();
+    });
+
+vorpal
+    .command('test <uuid>')
+    .action(function(args, cb) {
+        manager.test(args.uuid);
         cb();
     });
 

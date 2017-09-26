@@ -16,9 +16,11 @@ import Configuration from '../module/conf';
 import SubProcess from '../module/process';
 
 import CONF from '../conf';
-import { delay } from '../utils';
+import { delay, retry } from '../utils';
 
 const CONF_PATH = 'virmanager.conf';
+
+const readline = require('readline');
 
 let __configuration = new Configuration();
 
@@ -33,7 +35,15 @@ const PROTOTYPE_MAP = {
 /* the instance of Manager */
 let __instance = null;
 
+/* the instance of Agent
+ * vm uuid to Agent
+ */
 let __agents = {};
+
+/* the instance of RouteDevice
+ * vm uuid to RouteDevice
+ */
+let __routes = {};
 
 class Manager
 {
@@ -271,15 +281,33 @@ class Manager
         }
     }
 
-    createAgent(uuid) {
-        let vm = this.findDevice('vm', uuid);
-
+    __createAgent(vm) {
         if(vm) {
             if(__agents[vm.uuid] === undefined)
                 __agents[vm.uuid] = new Agent(vm);
-            else
-                console.log('agent already created');
+            return __agents[vm.uuid];
         }
+    }
+
+    createAgent(uuid) {
+        let vm = this.findDevice('vm', uuid);
+
+        return this.__createAgent(vm);
+    }
+
+    createRoute(uuid, ip) {
+        let vm = this.findDevice('vm', uuid);
+
+        if(!vm)
+            return;
+
+        let netdevs = vm.getDevices('NetworkDevice');
+
+        if(__routes[vm.uuid] === undefined)
+            __routes[vm.uuid] = new RouteDevice(
+                    ip, '255.255.255.255', undefined, netdevs[0]);
+
+        return __routes[vm.uuid];
     }
 
     createDAMain() {
@@ -362,45 +390,165 @@ class Manager
 
     startupDAMain(uuid, ip) {
         let vm = this.findDevice('vm', uuid);
-        vm.start();
 
-        let client = new Agent(vm);
+        let task = () => {
+            let client = new Agent(vm);
 
-        let getNICAddress = (type) => {
-            return new Promise((resolve, reject) => {
-                client.getNetworkInterfacebyDeviceName('eth0').then((nic) => {
-                    if(nic['ip-addresses'] === undefined) {
-                        reject(new Error('EAGAIN'));
-                        return;
-                    }
-                    nic['ip-addresses'].forEach((item) => {
-                        if(item['ip-address'] !== undefined &&
-                           item['ip-address-type'] === type) {
-                            resolve(item['ip-address']);
-                            return;
-                        }
+            let tryGetNICAddress = () => {
+                client.getNICAddress('eth0')('ipv4').then((ip) => {
+                    console.log('ipv4:' + ip);
+                }).catch((err) => {
+                    delay(1000)('retry').then((result) => {
+                        tryGetNICAddress();
                     });
                 });
+            };
+
+            /* setting NIC with client */
+            this.setVMNetworkInterface(client, uuid, ip).then((value) => {
+                tryGetNICAddress();
             });
         };
 
-        let tryGetNICAddress = () => {
-            getNICAddress('ipv4').then((ip) => {
-                console.log('ipv4:' + ip);
-            }).catch((err) => {
-                delay(1000)('retry').then((result) => {
-                    tryGetNICAddress();
+        vm.start()
+            .then((instance) => {
+                task();
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
+    discoveryiSCSITarget(uuid) {
+        return new Promise((resolve, reject) => {
+
+            let vm = this.findDevice('vm', uuid);
+
+            if(vm.instance == null) {
+                reject(null);
+            }
+
+            let client = this.__createAgent(vm);
+
+            let discoveryTarget = (ip) => {
+                return new Promise((resolve, reject) => {
+                    let discovery =  new SubProcess('iscsiadm',
+                            ['-m', 'discovery', '-t', 'st', '-p', ip]);
+
+                    discovery.run();
+                    let rl = readline.createInterface({
+                        input: discovery.proc.stdout
+                    });
+
+                    /* wait for 5s*/
+                    let to = setTimeout(() => {
+                        console.log('discovery target timeout');
+                        rl.close();
+                        discovery.interrupt();
+                        reject('ISCSI_ERR_TRANS');
+                    }, 5000);
+
+                    rl.on('line', (line) => {
+                        clearTimeout(to);
+                        let target = line.split(' ')[1].trim();
+
+                        resolve(target);
+                        rl.close();
+                   });
                 });
-            });
-        };
+            }
 
-        /* setting NIC with client */
-        this.setVMNetworkInterface(client, uuid, ip).then((value) => {
-            tryGetNICAddress();
+            let discovery = () => {
+                client.getNICAddress('eth0')('ipv4')
+                    .then((ip) => {
+                        console.log('try to connect to ' + ip);
+
+                        let route = this.createRoute(uuid, ip);
+                        route.up();
+
+                        discoveryTarget(ip)
+                            .then((target) => { resolve(target) })
+                            .catch((err) => { reject(err) });
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        if(err.errno !== 'ECONNREFUSED') {
+                            delay(1000)('retry').then((r) => {
+                                console.log('retry');
+                                discovery();
+                            });
+                        }
+                    });
+            };
+            discovery();
         });
     }
 
-    test() {
+    connectDAMain(uuid) {
+        /* errHandler for iSCSI login */
+        let errHandler = (ret) => {
+            switch(ret.status) {
+                case 0:
+                    console.log('ISCSI_SUCCESS');
+                    break;
+                case 4:
+                    console.log('ISCSI_ERR_TRANS');
+                    break;
+                case 8:
+                    console.log('ISCSI_ERR_TRANS_TIMEOUT');
+                    break;
+                default:
+                    console.log(ret.status);
+            }
+        }
+
+        this.discoveryiSCSITarget(uuid)
+            .then((target) => {
+                console.log('connect to ' + target);
+
+                let login = new SubProcess('iscsiadm',
+                        ['-m', 'node', '-T', target, '--login']);
+                let ret = login.runSync();
+                errHandler(ret);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
+    disconnectDAMain(uuid) {
+        /* errHandler for iSCSI login */
+        let errHandler = (ret) => {
+            switch(ret.status) {
+                case 0:
+                    console.log('ISCSI_SUCCESS');
+                    break;
+                case 4:
+                    console.log('ISCSI_ERR_TRANS');
+                    break;
+                case 8:
+                    console.log('ISCSI_ERR_TRANS_TIMEOUT');
+                    break;
+                default:
+                    console.log(ret.status);
+            }
+        }
+
+        this.discoveryiSCSITarget(uuid)
+            .then((target) => {
+                console.log('connect to ' + target);
+
+                let login = new SubProcess('iscsiadm',
+                        ['-m', 'node', '-T', target, '--logout']);
+                let ret = login.runSync();
+                errHandler(ret);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
+    test(str) {
         /*
         let pcidev = new PCIDevice("03:00.0");
 
@@ -409,6 +557,7 @@ class Manager
 
         pcidev.bind('rtsx_pci');
         */
+        /*
         let netdev= new NetworkDevice(new TapDevice());
         netdev.up();
         let route = new RouteDevice(
@@ -418,6 +567,7 @@ class Manager
         route.down();
 
         netdev.down();
+        */
     }
 
     static getInstance() {

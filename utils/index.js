@@ -10,4 +10,19 @@ let delay = (ms) => {
     };
 }
 
-export { delay };
+let retry = (func) => {
+    return (ms) => {
+        func()
+            .then((r) => {
+                console.log(r);
+                resolve(r);
+            })
+            .catch((err) => {
+                delay(ms)('retry').then((result) => {
+                    retry(func)(ms);
+                });
+            });
+    }
+}
+
+export { delay, retry };

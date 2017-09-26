@@ -18,6 +18,20 @@ class Device extends DeviceDescription
         this.devices[device.uuid] = device;
     }
 
+    getDevices(type) {
+        let devs = [];
+
+        for(let key in this.devices) {
+            let dev = this.devices[key];
+            Object.setPrototypeOf(dev, Device.prototype);
+
+            if(type === dev.type) {
+                devs.push(dev);
+            }
+        }
+        return devs;
+    }
+
     /* run an instance. */
     start() {
     }
