@@ -310,7 +310,7 @@ class Manager
         return __routes[vm.uuid];
     }
 
-    createDAMain() {
+    createDAMain(pciAddresses) {
         let vm = new VirtualMachine('DAMain');
 
         let args = [
@@ -329,6 +329,15 @@ class Manager
 
         let netdev= new NetworkDevice(new TapDevice());
         vm.addDevice(netdev);
+
+        if(pciAddresses !== undefined) {
+            let addresses = pciAddresses.split(',');
+
+            addresses.forEach((addr) => {
+                let pcidev = new PCIDevice(addr);
+                vm.addDevice(pcidev);
+            });
+        }
 
         /* get the category list */
         let category = this.categoryList.find((obj) => {

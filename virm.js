@@ -100,8 +100,9 @@ vorpal
 
 vorpal
     .command('create damain')
+    .option('--addresses <addresses>', 'The address of PCI device')
     .action(function(args, cb) {
-        manager.createDAMain();
+        manager.createDAMain(args.options.addresses);
         cb();
     });
 
