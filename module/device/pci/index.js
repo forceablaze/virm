@@ -32,7 +32,7 @@ class PCIDevice extends Device
         let deviceIds = stdoutList[2].split(':');
 
         this._classId = stdoutList[1].split(':')[0];
-        this._deviceId = { 'vid': deviceIds[0], 'pid': deviceIds[1] };
+        this._deviceId = { 'vid': deviceIds[0].trim(), 'pid': deviceIds[1].trim() };
     }
 
     start() {
