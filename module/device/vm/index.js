@@ -228,7 +228,7 @@ class VirtualMachine extends Device
     }
 
     unpreparePCIDevice(pcidev) {
-        Object.setPrototypeOf(netdev, PCIDevice.prototype);
+        Object.setPrototypeOf(pcidev, PCIDevice.prototype);
         pcidev.unbind();
     }
 
