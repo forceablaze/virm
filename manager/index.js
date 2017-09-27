@@ -331,7 +331,7 @@ class Manager
         let args = [
             'create',
             '-f', 'qcow2', '-b', CONF.IMAGE_PATH + '/damain-1.10',
-            `${vm.uuid}`
+            CONF.IMAGE_PATH + '/' + `${vm.uuid}`
         ];
 
         let createSnapshot = new SubProcess(CONF.BIN_PATH + '/qemu-img', args);
