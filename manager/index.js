@@ -20,6 +20,7 @@ import { delay, retry, subnetize } from '../utils';
 
 const CONF_PATH = 'virmanager.conf';
 
+const fs = require('fs');
 const readline = require('readline');
 
 let __configuration = new Configuration();
@@ -274,6 +275,11 @@ class Manager
             console.log("stop: " + device.toString());
 
             this.destroyRoute(uuid);
+            try {
+                fs.unlinkSync(CONF.RUN_PATH + '/damain/' + uuid);
+            } catch(err) {
+                console.log(err);
+            }
 
             try {
                 device.stop();
@@ -434,6 +440,18 @@ class Manager
             let tryGetNICAddress = () => {
                 client.getNICAddress('eth0')('ipv4').then((ip) => {
                     console.log('ipv4:' + ip);
+
+                    let meta = {};
+                    meta['ip'] = ip;
+                    meta['mask'] = subnetize(cidr.split('/')[1]);
+
+                    let str = JSON.stringify(meta, null, 2);
+                    fs.writeFile(CONF.RUN_PATH + '/damain/' + uuid, str,
+                            'utf8', (err) => {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
 
                     /* set the route to the guest */
                     let route = this.createRoute(uuid, ip);
