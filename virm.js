@@ -5,6 +5,12 @@ const vorpal = require('vorpal')();
 import SubProcess from './module/process';
 import Manager from './manager';
 
+const network = require('network');
+const cidrjs = require('cidr-js');
+const ip = require('ip');
+
+const { cidrize, getRandomIntInclusive } = require('./utils');
+
 const manager = Manager.getInstance();
 const WORKING_DIR = __dirname;
 
@@ -108,11 +114,27 @@ vorpal
 
 vorpal
     .command('damain <uuid>')
-    .option('--ip <ip>', 'The ip set to vm')
     .action(function(args, cb) {
-        manager.startupDAMain(
-                args.uuid,
-                args.options.ip);
+        network.get_active_interface((err, obj) => {
+            if(!err) {
+                /* get current cidr address */
+                ip.subnet(obj.ip_address, obj.netmask);
+                let maskSize = cidrize(obj.netmask);
+                let cidraddr = obj.ip_address + '/' + maskSize;
+                console.log('current active ip ' + cidraddr);
+
+                let cidr = new cidrjs();
+                let list = cidr.list(cidraddr);
+
+                let addr = list[getRandomIntInclusive(0, list.length - 1)];
+                while(addr == obj.ip_address)
+                    addr = list[getRandomIntInclusive(0, list.length - 1)];
+
+                cidraddr = addr + '/' + maskSize;
+                console.log('set subnet ' + cidraddr + ' to damain');
+                manager.startupDAMain(args.uuid, cidraddr);
+            }
+        });
         cb();
     });
 
