@@ -346,7 +346,7 @@ class Manager
 
         vm.setCPUCore(2);
         vm.setMemory(512);
-        vm.addDevice(new HardDisk(vm.uuid));
+        vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
         let netdev= new NetworkDevice(new TapDevice());
         vm.addDevice(netdev);
