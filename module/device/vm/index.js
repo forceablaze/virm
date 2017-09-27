@@ -30,7 +30,7 @@ class VirtualMachine extends Device
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
             '-cpu': 'Nehalem',
             /* boot from disk */
-            '-boot': 'c'
+            '-boot': 'c,strict=on'
         };
     }
 
