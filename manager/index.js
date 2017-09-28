@@ -99,6 +99,36 @@ class Manager
         __configuration.serialize(CONF_PATH);
     }
 
+    create(category, options) {
+        switch(category) {
+            case "vm":
+                this.createVM(options.name);
+                break;
+            case "disk":
+                this.createDisk(
+                        options.path,
+                        options.size);
+                break;
+            case "pci":
+                this.createPCIDevice(
+                        options.busnum);
+            case "net":
+                this.createNetworkDevice();
+                break;
+            case "route":
+                this.createRouteDevice(
+                        options.net,
+                        options.mask,
+                        options.gw,
+                        options.uuid);
+            case "agent":
+                this.createAgent(options.uuid);
+                break;
+            default:
+                console.log("Not support " + category + " creation.");
+        }
+    }
+
     createVM(name, cpu = 2, memory = 2048,
             vncAddress = "0.0.0.0",
             vncPort = "0") {

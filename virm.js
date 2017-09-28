@@ -25,40 +25,17 @@ vorpal
 vorpal
     .command('create <category>', 'Create item.')
     .option('--name <name>', 'Set the name.')
+    .option('--uuid <uuid>', 'The UUID of device')
     .option('--path <path>', 'Set the path.')
     .option('--size <size>', 'Set the size (in byte).')
     .option('--busnum <size>', 'The busnum of PCI device "01:00.0".')
     .option('--net <net>', 'The route target.')
     .option('--mask <mask>', 'The netmask of the network.')
     .option('--gw <gw>', 'Route packets via a gateway.')
-    .option('--dev <netdev_uuid>', 'Set the route to be associated with the specified device.')
     .alias('c')
     .action(function(args, cb) {
-        switch(args.category.toString()) {
-            case "vm":
-                manager.createVM(args.options.name);
-                break;
-            case "disk":
-                manager.createDisk(
-                        args.options.path,
-                        args.options.size);
-                break;
-            case "pci":
-                manager.createPCIDevice(
-                        args.options.busnum);
-            case "net":
-                manager.createNetworkDevice();
-                break;
-            case "route":
-                manager.createRouteDevice(
-                        args.options.net,
-                        args.options.mask,
-                        args.options.gw,
-                        args.options.dev);
-                break;
-            default:
-                console.log("Not support " + args.category + " creation.");
-        }
+        manager.create(args.category.toString(),
+                args.options);
         cb();
     });
 
