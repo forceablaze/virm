@@ -29,6 +29,7 @@ vorpal
     .option('--path <path>', 'Set the path.')
     .option('--size <size>', 'Set the size (in byte).')
     .option('--busnum <size>', 'The busnum of PCI device "01:00.0".')
+    .option('--addresses <addresses>', 'The list of PCI device "01:00.0,02:00.0".')
     .option('--net <net>', 'The route target.')
     .option('--mask <mask>', 'The netmask of the network.')
     .option('--gw <gw>', 'Route packets via a gateway.')

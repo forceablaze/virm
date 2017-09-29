@@ -23,6 +23,12 @@ const CONF_PATH = 'virmanager.conf';
 const fs = require('fs');
 const readline = require('readline');
 
+const network = require('network');
+const cidrjs = require('cidr-js');
+const ip = require('ip');
+
+const { cidrize, getRandomIntInclusive } = require('../utils');
+
 let __configuration = new Configuration();
 
 const PROTOTYPE_MAP = {
@@ -100,7 +106,7 @@ class Manager
     }
 
     create(category, options) {
-        switch(category) {
+        switch(category.toLowerCase()) {
             case "vm":
                 this.createVM(options.name);
                 break;
@@ -121,11 +127,17 @@ class Manager
                         options.mask,
                         options.gw,
                         options.uuid);
+                break;
+            /* no category list type */
             case "agent":
                 this.createAgent(options.uuid);
                 break;
+            case 'damain':
+                this.createDAMain(options.addresses);
+                break;
             default:
                 console.log("Not support " + category + " creation.");
+                break;
         }
     }
 
@@ -269,6 +281,9 @@ class Manager
                 device = category.list[key];
         }
 
+        if(!device)
+            return null;
+
         Object.setPrototypeOf(device,
                 PROTOTYPE_MAP[categoryName.toUpperCase()]);
 
@@ -284,7 +299,7 @@ class Manager
         this.saveConfiguration();
     }
 
-    start(categoryName, uuid) {
+    __start(categoryName, uuid) {
         let device = this.findDevice(categoryName, uuid);
 
         if(device) {
@@ -298,24 +313,64 @@ class Manager
         }
     }
 
-    stop(categoryName, uuid) {
+    start(categoryName, uuid) {
+        switch(categoryName.toLowerCase()) {
+            case "vm":
+            case "disk":
+            case "pci":
+            case "net":
+            case "route":
+                this.__start(categoryName, uuid);
+                break;
+            /* no category list type */
+            case 'damain':
+                this.startupDAMain(uuid);
+                break;
+            default:
+                console.log("Not support " + categoryName + " creation.");
+                break;
+        }
+    }
+
+    __stop(categoryName, uuid) {
         let device = this.findDevice(categoryName, uuid);
 
         if(device) {
             console.log("stop: " + device.toString());
-
-            this.destroyRoute(uuid);
-            try {
-                fs.unlinkSync(CONF.RUN_PATH + '/damain/' + uuid);
-            } catch(err) {
-                console.log(err);
-            }
 
             try {
                 device.stop();
             } catch(e) {
                 console.log(e);
             }
+        }
+    }
+
+    stop(categoryName, uuid) {
+        switch(categoryName.toLowerCase()) {
+            case "vm":
+            case "disk":
+            case "pci":
+            case "net":
+            case "route":
+                this.__stop(categoryName, uuid);
+                break;
+            /* no category list type */
+            case 'damain':
+                /* remove route and meta before stop damain */
+                {
+                    this.destroyRoute(uuid);
+                    try {
+                        fs.unlinkSync(CONF.RUN_PATH + '/damain/' + uuid);
+                    } catch(err) {
+                        console.log(err);
+                    }
+                    this.__stop('vm', uuid);
+                }
+                break;
+            default:
+                console.log("Not support " + categoryName + " creation.");
+                break;
         }
     }
 
@@ -461,7 +516,8 @@ class Manager
         });
     }
 
-    startupDAMain(uuid, cidr) {
+
+    __startupDAMain(uuid, cidr) {
         let vm = this.findDevice('vm', uuid);
 
         let task = () => {
@@ -508,6 +564,29 @@ class Manager
             .catch((err) => {
                 console.log(err);
             });
+    }
+
+    startupDAMain(uuid) {
+        network.get_active_interface((err, obj) => {
+            if(!err) {
+                /* get current cidr address */
+                ip.subnet(obj.ip_address, obj.netmask);
+                let maskSize = cidrize(obj.netmask);
+                let cidraddr = obj.ip_address + '/' + maskSize;
+                console.log('current active ip ' + cidraddr);
+
+                let cidr = new cidrjs();
+                let list = cidr.list(cidraddr);
+
+                let addr = list[getRandomIntInclusive(0, list.length - 1)];
+                while(addr == obj.ip_address)
+                    addr = list[getRandomIntInclusive(0, list.length - 1)];
+
+                cidraddr = addr + '/' + maskSize;
+                console.log('set subnet ' + cidraddr + ' to damain');
+                this.__startupDAMain(uuid, cidraddr);
+            }
+        });
     }
 
     discoveryiSCSITarget(uuid) {
