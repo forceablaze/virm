@@ -1,5 +1,7 @@
 import CONF from './conf';
 
+import { CMD, CATEGORY, Req, Res } from './reqres';
+
 const net = require('net');
 const readline = require('readline');
 const options = require('options-parser');
@@ -7,14 +9,23 @@ const options = require('options-parser');
 let opts = null;
 try {
     opts = options.parse({
-        cmd: { default: 'help' },
+        cmd: { require: true, default: 'list', help: 'support list, create, start, stop, add' },
+        category: { require: true, help: 'the category of the command to do' },
+        uuid: { help: 'device uuid' },
+        name: { help: 'the name set to the VM' },
+        addresses: { help: 'the PCI addresses 01:00.0,02:00.0' },
         timeout: { default: 3000 }
     });
 } catch(err) {
     process.exit(10);
 }
+
 const command = opts['opt']['cmd'];
+const category = opts['opt']['category'];
 const timeout = opts['opt']['timeout'];
+
+/* a builder to generate request */
+const reqBuilder = new Req.ReqBuilder();
 
 const client = new net.Socket();
 client.setEncoding('utf8');
@@ -31,17 +42,30 @@ const rl = readline.createInterface({
 });
 
 rl.on('line', (line) => {
-    if(line.substr(10, 11) === 'virmanager:') {
-    }
-    else console.log(line);
+    console.log(line);
 });
 
-let run = () => {
-    client.write(command + '\n');
+let generateReq = () => {
+    reqBuilder
+        .setCMD(CMD.get(command.toUpperCase()))
+        .setCategory(CATEGORY.get(category.toUpperCase()));
+
+    if(opts['opt']['uuid'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['uuid']);
+    if(opts['opt']['name'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['name']);
+    if(opts['opt']['addresses'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['addresses']);
+
+    return reqBuilder.build();
 };
 
+client.on('error', (err) => {
+
+});
+
 client.connect(CONF.SOCKET_PATH, () => {
-    run();
+    client.write(generateReq().toBuffer());
 });
 
 new Promise((resolve, reject) => {
