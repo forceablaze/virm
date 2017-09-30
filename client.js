@@ -55,7 +55,7 @@ let generateReq = () => {
     if(opts['opt']['name'] !== undefined)
         reqBuilder.setUUID(opts['opt']['name']);
     if(opts['opt']['addresses'] !== undefined)
-        reqBuilder.setUUID(opts['opt']['addresses']);
+        reqBuilder.setPCIAddresses(opts['opt']['addresses']);
 
     return reqBuilder.build();
 };
