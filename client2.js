@@ -9,7 +9,11 @@ const options = require('options-parser');
 let opts = null;
 try {
     opts = options.parse({
-        cmd: { default: 'help' },
+        cmd: { require: true, default: 'list', help: 'support list, create, start, stop, add' },
+        category: { require: true, help: 'the category of the command to do' },
+        uuid: { help: 'device uuid' },
+        name: { help: 'the name set to the VM' },
+        addresses: { help: 'the PCI addresses 01:00.0,02:00.0' },
         timeout: { default: 3000 }
     });
 } catch(err) {
@@ -17,6 +21,7 @@ try {
 }
 
 const command = opts['opt']['cmd'];
+const category = opts['opt']['category'];
 const timeout = opts['opt']['timeout'];
 
 /* a builder to generate request */
@@ -41,14 +46,18 @@ rl.on('line', (line) => {
 });
 
 let generateReq = () => {
-    return reqBuilder
-            .setCMD(CMD.STOP)
-            .setCategory(CATEGORY.DAMAIN)
-            .setUUID('23ec1916-8802-46c8-ac73-8b311ce7f0fd')
-            .build();
-};
+    reqBuilder
+        .setCMD(CMD.get(command.toUpperCase()))
+        .setCategory(CATEGORY.get(category.toUpperCase()));
 
-let run = () => {
+    if(opts['opt']['uuid'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['uuid']);
+    if(opts['opt']['name'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['name']);
+    if(opts['opt']['addresses'] !== undefined)
+        reqBuilder.setUUID(opts['opt']['addresses']);
+
+    return reqBuilder.build();
 };
 
 client.on('error', (err) => {
