@@ -2,8 +2,10 @@
 
 import Device from '../device';
 import SubProcess from '../../process';
+import CONF from '../../../conf';
 
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
 class PCIDevice extends Device
@@ -21,7 +23,9 @@ class PCIDevice extends Device
     lookupDeviceId() {
         let deviceId = {};
 
-        let lspci = new SubProcess('lspci', ['-n', '-s', this.busnum],
+        let lspci = new SubProcess(
+                path.resolve(CONF.INSTALL_PATH, './usr/sbin/lspci'),
+                ['-n', '-s', this.busnum],
                 (data) => {
                     console.log(data);
                 }, (data) => {
