@@ -56,6 +56,24 @@ class VirtualMachine extends Device
             argArray.push('-device');
             argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
 
+            argArray.push('-device');
+            argArray.push('nec-usb-xhci,id=usb,bus=pci.0');
+
+            argArray.push('-device');
+            argArray.push('virtio-balloon-pci,id=balloon0,bus=pci.0');
+
+            /*
+            argArray.push('-device');
+            argArray.push('usb-tablet,id=input0');
+
+            argArray.push('-global');
+            argArray.push('PIIX4_PM.disable_s3=1');
+
+            argArray.push('-global');
+            argArray.push('PIIX4_PM.disable_s4=1');
+            */
+
+
             /* generate the arguments */
             this.prepareDevice(argArray);
 
