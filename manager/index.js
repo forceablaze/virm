@@ -557,6 +557,10 @@ class Manager
             });
         };
 
+        if(!vm) {
+            throw new Error('No VM found');
+        }
+
         vm.start()
             .then((instance) => {
                 task();
@@ -584,7 +588,11 @@ class Manager
 
                 cidraddr = addr + '/' + maskSize;
                 console.log('set subnet ' + cidraddr + ' to damain');
-                this.__startupDAMain(uuid, cidraddr);
+                try {
+                    this.__startupDAMain(uuid, cidraddr);
+                } catch(err) {
+                    console.log(err);
+                }
             }
         });
     }
