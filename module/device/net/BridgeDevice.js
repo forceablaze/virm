@@ -3,6 +3,7 @@
 import SubProcess from '../../process';
 import Description from '../../desc';
 import NetworkDevice from './index.js';
+import Device from '../device';
 
 class BridgeDevice extends Description
 {
@@ -37,11 +38,11 @@ class BridgeDevice extends Description
     }
 
     addif(netdev) {
-        console.log(Object.getPrototypeOf(netdev));
-        if(Object.getPrototypeOf(netdev) !== NetworkDevice.prototype)
+        Object.setPrototypeOf(netdev, Device.prototype);
+        if(netdev.type !== 'NetworkDevice')
             throw new Error('Wrong Type');
 
-        console.log(netdev);
+        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
 
         let addif = new SubProcess('brctl', ['addif', this.name, netdev.name]);
         let result = addif.runSync();
@@ -52,8 +53,11 @@ class BridgeDevice extends Description
     }
 
     delif(netdev) {
-        if(Object.getPrototypeOf(netdev) !== NetworkDevice.prototype)
+        Object.setPrototypeOf(netdev, Device.prototype);
+        if(netdev.type !== 'NetworkDevice')
             throw new Error('Wrong Type');
+
+        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
 
         let delif = new SubProcess('brctl', ['delif', this.name, netdev.name]);
         let result = delif.runSync();
