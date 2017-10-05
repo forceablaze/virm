@@ -9,6 +9,7 @@ import PCIDevice from '../module/device/pci';
 import VFIODevice from '../module/device/pci/VFIODevice';
 import RouteDevice from '../module/device/net/route';
 import NetworkDevice from '../module/device/net';
+import BridgeDevice from '../module/device/net/BridgeDevice';
 import TapDevice from '../module/device/net/TapDevice';
 
 import Agent from '../module/agent';
@@ -23,7 +24,7 @@ const CONF_PATH = 'virmanager.conf';
 const fs = require('fs');
 const readline = require('readline');
 
-const network = require('network');
+import os from 'os';
 const cidrjs = require('cidr-js');
 const ip = require('ip');
 
@@ -324,7 +325,11 @@ class Manager
                 break;
             /* no category list type */
             case 'damain':
-                this.startupDAMain(uuid);
+                try {
+                    this.startupDAMain(uuid);
+                } catch(err) {
+                    console.log(err);
+                }
                 break;
             default:
                 console.log("Not support " + categoryName + " creation.");
@@ -416,6 +421,7 @@ class Manager
         __routes[vm.uuid] = undefined;
     }
 
+    /* DAMain code */
     createDAMain(pciAddresses) {
         let vm = new VirtualMachine('DAMain');
 
@@ -538,10 +544,6 @@ class Manager
                             console.log(err);
                         }
                     });
-
-                    /* set the route to the guest */
-                    let route = this.createRoute(uuid, ip);
-                    route.up();
                 }).catch((err) => {
                     if(!vm.instance)
                         return;
@@ -564,6 +566,11 @@ class Manager
         vm.start()
             .then((instance) => {
                 task();
+                let netdevs = vm.getDevices('NetworkDevice');
+
+                console.log(netdevs);
+                let br = new BridgeDevice('da0');
+                br.addif(netdevs[0]);
             })
             .catch((err) => {
                 console.log(err);
@@ -571,19 +578,24 @@ class Manager
     }
 
     startupDAMain(uuid) {
-        network.get_active_interface((err, obj) => {
-            if(!err) {
-                /* get current cidr address */
-                ip.subnet(obj.ip_address, obj.netmask);
-                let maskSize = cidrize(obj.netmask);
-                let cidraddr = obj.ip_address + '/' + maskSize;
-                console.log('current active ip ' + cidraddr);
+        let netdevs = os.networkInterfaces();
+        if(netdevs['da0'] === undefined) {
+            throw new Error('No da0 bridge found.');
+        }
+
+        let da0 = netdevs['da0'];
+
+        da0.forEach((item) => {
+            if(item.family === 'IPv4') {
+                let maskSize = cidrize(item.netmask);
+                let cidraddr = item.address + '/' + maskSize;
+                console.log('bridge da0 ip: ' + cidraddr);
 
                 let cidr = new cidrjs();
                 let list = cidr.list(cidraddr);
 
                 let addr = list[getRandomIntInclusive(0, list.length - 1)];
-                while(addr == obj.ip_address)
+                while(addr == item.address)
                     addr = list[getRandomIntInclusive(0, list.length - 1)];
 
                 cidraddr = addr + '/' + maskSize;
@@ -722,6 +734,7 @@ class Manager
                 console.log(err);
             });
     }
+    /* END DAMain code */
 
     test(str) {
         /*
