@@ -427,7 +427,7 @@ class Manager
 
         let args = [
             'create',
-            '-f', 'qcow2', '-b', CONF.IMAGE_PATH + '/damain-1.10',
+            '-f', 'qcow2', '-b', CONF.IMAGE_PATH + '/damain-1.1.04',
             CONF.IMAGE_PATH + '/' + `${vm.uuid}`
         ];
 

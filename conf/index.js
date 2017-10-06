@@ -31,7 +31,7 @@ const CONF = {
 
     SOCKET_PATH: install_path + '/var/run/virmanager.sock',
 
-    RUN_PATH: install_path + '/var/run',
+    RUN_PATH: install_path + '/var/run/virm',
 
     LOG_PATH: install_path + '/var/log'
 };
