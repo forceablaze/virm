@@ -55,7 +55,7 @@ class VirtualMachine extends Device
             /* monitor socket setting */
             argArray.push('-chardev');
             argArray.push('socket,id=chmon,path=' +
-                    path.resolve(CONF.RUN_PATH, `./${this.uuid}.mon`) + ',server,nowait');
+                    path.resolve(CONF.VIRM_RUN_PATH, `./${this.uuid}.mon`) + ',server,nowait');
             argArray.push('-mon');
             argArray.push('chardev=chmon,id=mon,mode=control');
 
