@@ -28,7 +28,7 @@ class VirtualMachine extends Device
             '-name': name,
             '-uuid': `${this.uuid}`,
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
-            '-cpu': 'Nehalem',
+            '-cpu': 'host',
             /* boot from disk */
             '-boot': 'c,strict=on'
         };
@@ -152,7 +152,7 @@ class VirtualMachine extends Device
     }
 
     setCPUCore(core) {
-        this._args['-smp'] = core;
+        this._args['-smp'] = 'cores=' + core + ',threads=1,sockets=1';
     }
 
     setVNC(address, num) {
