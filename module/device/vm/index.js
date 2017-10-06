@@ -52,6 +52,14 @@ class VirtualMachine extends Device
             argArray.push('-device');
             argArray.push('virtio-serial');
 
+            /* monitor socket setting */
+            argArray.push('-chardev');
+            argArray.push('socket,id=chmon,path=' +
+                    path.resolve(CONF.RUN_PATH, `./${this.uuid}.mon`) + ',server,nowait');
+            argArray.push('-mon');
+            argArray.push('chardev=chmon,id=mon,mode=control');
+
+
             /* the chardev name must set to org.qemu.guest_agent.0 (agent default value) */
             argArray.push('-device');
             argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
