@@ -526,7 +526,7 @@ class Manager
     __startupDAMain(uuid, cidr) {
         let vm = this.findDevice('vm', uuid);
 
-        let task = () => {
+        let task = (instance) => {
             let client = new Agent(vm);
 
             let tryGetNICAddress = () => {
@@ -536,6 +536,7 @@ class Manager
                     let meta = {};
                     meta['ip'] = ip;
                     meta['mask'] = subnetize(cidr.split('/')[1]);
+                    meta['pid'] = instance.pid;
 
                     let str = JSON.stringify(meta, null, 2);
                     fs.writeFile(CONF.RUN_PATH + '/damain/' + uuid, str,
@@ -565,7 +566,7 @@ class Manager
 
         vm.start()
             .then((instance) => {
-                task();
+                task(instance);
                 let netdevs = vm.getDevices('NetworkDevice');
 
                 console.log(netdevs);
