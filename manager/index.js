@@ -435,8 +435,8 @@ class Manager
         let result = createSnapshot.runSync();
         console.log(result);
 
-        vm.setCPUCore(2);
-        vm.setMemory(512);
+        vm.setCPUCore(4);
+        vm.setMemory(4096);
         vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
         let netdev= new NetworkDevice(new TapDevice());
