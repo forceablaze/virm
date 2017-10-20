@@ -59,7 +59,6 @@ class VirtualMachine extends Device
             argArray.push('-mon');
             argArray.push('chardev=chmon,id=mon,mode=control');
 
-
             /* the chardev name must set to org.qemu.guest_agent.0 (agent default value) */
             argArray.push('-device');
             argArray.push('virtserialport,chardev=qda0,name=org.qemu.guest_agent.0');
@@ -169,6 +168,10 @@ class VirtualMachine extends Device
 
     getAgentSocketPath() {
         return '/tmp/qdm.' + this.uuid.substring(0, 8) + '.sock';
+    }
+
+    getMonitorSocketPath() {
+        return path.resolve(CONF.VIRM_RUN_PATH, `./${this.uuid}.mon`);
     }
 
     addDevice(device) {
