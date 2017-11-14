@@ -238,7 +238,7 @@ class VirtualMachine extends Device
         vfio.bind();
 
         list.push("-device");
-        list.push("vfio-pci,host=" + pcidev.busnum);
+        list.push("vfio-pci,rombar=0,host=" + pcidev.busnum);
     }
 
     prepareNetworkDevice(netdev, list) {
