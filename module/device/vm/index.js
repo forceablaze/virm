@@ -44,6 +44,9 @@ class VirtualMachine extends Device
                 argArray.push(this._args[key]);
             }
 
+            /* qemu will not exit and a STOP event will eventually follow the SHUTDOWN event */
+            argArray.push('-no-shutdown');
+
             /* qemu agent setting */
             argArray.push('-chardev');
             argArray.push('socket,path=/tmp/qdm.' +
@@ -218,6 +221,8 @@ class VirtualMachine extends Device
                     break;
                 case "PCIDevice":
                     this.unpreparePCIDevice(dev);
+                    break;
+                case "HardDisk":
                     break;
                 default:
                     console.log("Not supported device type: " + dev.type);
