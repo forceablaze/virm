@@ -25,7 +25,7 @@ class QMP extends net.Socket {
                     console.log(obj);
                     if(obj['event'] !== undefined) {
                         console.log(obj.event);
-                        this.emit(obj.event.toLowerCase(), obj.data);
+                        this.emit(obj.event.toLowerCase(), obj);
                     }
                 } catch(err) {
                     console.log(err);
@@ -81,6 +81,10 @@ class QMP extends net.Socket {
 
             cb();
         });
+    }
+
+    powerdown() {
+        this.write('{"execute": "system_powerdown"}');
     }
 }
 
