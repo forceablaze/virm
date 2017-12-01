@@ -13,6 +13,7 @@ import BridgeDevice from '../module/device/net/BridgeDevice';
 import TapDevice from '../module/device/net/TapDevice';
 
 import Agent from '../module/agent';
+import QMP from '../module/qmp';
 import Configuration from '../module/conf';
 import SubProcess from '../module/process';
 
@@ -53,6 +54,11 @@ let __agents = {};
  * vm uuid to RouteDevice
  */
 let __routes = {};
+
+/* the instance of QMP
+ * vm uuid to QMP
+ */
+let __qmps = {};
 
 class Manager
 {
@@ -371,6 +377,15 @@ class Manager
         }
     }
 
+    qmp(uuid, command) {
+        let vm = this.findDevice('vm', uuid);
+        if(!vm)
+            return;
+
+        let qmp = this.createQMP(vm.uuid);
+        qmp.execute(command);
+    }
+
     __createAgent(vm) {
         if(vm) {
             if(__agents[vm.uuid] === undefined)
@@ -411,6 +426,35 @@ class Manager
             route.down();
         }
         __routes[vm.uuid] = undefined;
+    }
+
+    __createQMP(uuid, ev_handler) {
+        let vm = this.findDevice('vm', uuid);
+
+        if(vm) {
+            if(__qmps[vm.uuid] === undefined) {
+                __qmps[vm.uuid] = new QMP(vm);
+
+                let qmp = __qmps[vm.uuid];
+                qmp.setEncoding('utf8');
+
+                for(let ev in ev_handler) {
+                    console.log('register ' + ev + ' handler');
+                    qmp.on(ev, ev_handler[ev]);
+                }
+
+                delay(2000)('reconnect').then((result) => {
+                    qmp.connect(vm.getMonitorSocketPath(), () => {
+                        console.log('QMP connected');
+                    });
+                });
+            }
+            return __qmps[vm.uuid];
+        }
+    }
+
+    createQMP(uuid, ev_handler) {
+        return this.__createQMP(uuid, ev_handler);
     }
 
     /* DAMain code */

@@ -126,7 +126,7 @@ let __startupDAMain = (manager, uuid, cidr) => {
     let vm = manager.findDevice('vm', uuid);
 
     let task = (instance) => {
-        let client = new Agent(vm);
+        let client = manager.createAgent(uuid);
 
         let tryGetNICAddress = () => {
             client.getNICAddress('eth0')('ipv4').then((ip) => {
@@ -158,30 +158,18 @@ let __startupDAMain = (manager, uuid, cidr) => {
             tryGetNICAddress();
         });
 
-        let qmp = new QMP();
-        qmp.setEncoding('utf8');
-        qmp.on('vnc_connected', (ev) => {
-            console.log(ev);
-        });
 
-        qmp.on('powerdown', (ev) => {
-            console.log(ev);
-        });
-
-        qmp.on('shutdown', (ev) => {
-            console.log(ev);
-        });
-
-        qmp.on('stop', (ev) => {
-            console.log(ev);
-            manager.stop('damain', vm.uuid);
-        });
-
-        delay(3000)('done').then((value) => {
-            qmp.connect(vm.getMonitorSocketPath(), () => {
-                console.log('QMP connected');
-            });
-        });
+        /* listen QMP event */
+        let ev_handler = {
+            'vnc_connnected': (ev) => { console.log(ev) },
+            'powerdown': (ev) => { console.log(ev) },
+            'shutdown': (ev) => { console.log(ev) },
+            'stop': (ev) => {
+                console.log(ev);
+                manager.stop('damain', vm.uuid);
+            },
+        };
+        manager.createQMP(vm.uuid, ev_handler);
     };
 
     if(!vm) {
@@ -192,10 +180,15 @@ let __startupDAMain = (manager, uuid, cidr) => {
         .then((instance) => {
             task(instance);
             let netdevs = vm.getDevices('NetworkDevice');
-
             console.log(netdevs);
+
             let br = new BridgeDevice(DAMAIN_NET_BRIDGE);
-            br.addif(netdevs[0]);
+            try {
+                br.addif(netdevs[0]);
+            } catch (err) {
+                console.log(err)
+            }
+
             vm.addDevice(br);
         })
         .catch((err) => {

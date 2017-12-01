@@ -6,10 +6,10 @@ const SYNC_BYTE = 0xFF;
 const END_BYTE = 0xFE;
 
 const CMD = new Enum(
-        ['LIST', 'CREATE', 'START', 'STOP', 'ADD']);
+        ['LIST', 'CREATE', 'START', 'STOP', 'ADD', 'QMP']);
 
 const CATEGORY = new Enum(
-        ['VM', 'NET', 'DISK', 'PCI', 'ROUTE', 'DAMAIN' ]);
+        ['VM', 'NET', 'DISK', 'PCI', 'ROUTE', 'DAMAIN']);
 
 class Req
 {
@@ -68,6 +68,11 @@ class Req
 
                 setUUID(uuid) {
                     this._attrs['options']['uuid'] = uuid;
+                    return this;
+                }
+
+                setQMPCommand(command) {
+                    this._attrs['options']['qmp_command'] = command;
                     return this;
                 }
 

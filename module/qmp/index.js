@@ -83,8 +83,12 @@ class QMP extends net.Socket {
         });
     }
 
+    execute(command) {
+        this.write('{"execute": "' + command + '"}');
+    }
+
     powerdown() {
-        this.write('{"execute": "system_powerdown"}');
+        this.execute('system_powerdown');
     }
 }
 

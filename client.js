@@ -9,12 +9,14 @@ const options = require('options-parser');
 let opts = null;
 try {
     opts = options.parse({
-        cmd: { require: true, default: 'list', help: 'support list, create, start, stop, add' },
-        category: { require: true, help: 'the category of the command to do' },
+        cmd: { default: 'list', help: 'support list, create, start, stop, add, qmp' },
+        category: { default: 'vm', help: 'the category of the command to do' },
         uuid: { help: 'device uuid' },
         name: { help: 'the name set to the VM' },
         addresses: { help: 'the PCI addresses 01:00.0,02:00.0' },
-        timeout: { default: 3000 }
+        timeout: { default: 3000 },
+
+        qmp: { default: 'query-status' }
     });
 } catch(err) {
     process.exit(10);
@@ -46,6 +48,7 @@ rl.on('line', (line) => {
 });
 
 let generateReq = () => {
+
     reqBuilder
         .setCMD(CMD.get(command.toUpperCase()))
         .setCategory(CATEGORY.get(category.toUpperCase()));
@@ -56,6 +59,8 @@ let generateReq = () => {
         reqBuilder.setUUID(opts['opt']['name']);
     if(opts['opt']['addresses'] !== undefined)
         reqBuilder.setPCIAddresses(opts['opt']['addresses']);
+    if(opts['opt']['qmp'] !== undefined)
+        reqBuilder.setQMPCommand(opts['opt']['qmp']);
 
     return reqBuilder.build();
 };

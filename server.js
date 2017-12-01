@@ -17,15 +17,15 @@ const ip = require('ip');
 const net = require('net');
 
 const events = require('events');
-
 const manager = Manager.getInstance();
+const VIRM_PID_PATH = CONF.INSTALL_PATH + '/var/run/virm.pid';
 
-let pidFile = fs.createWriteStream(CONF.INSTALL_PATH + '/var/run/virm.pid');
+let pidFile = fs.createWriteStream(VIRM_PID_PATH);
 pidFile.write(process.pid.toString());
 pidFile.end();
 
 let exitProcess = () => {
-    fs.unlinkSync(CONF.INSTALL_PATH + '/var/run/virm.pid');
+    fs.unlinkSync(VIRM_PID_PATH);
     process.exit(0);
 };
 process.on('SIGINT', exitProcess);
@@ -45,10 +45,16 @@ emitter.on('exec', (obj) => {
             manager.start(obj['category'], obj['options']['uuid']);
             break;
         case CMD.STOP.toString():
-            manager.stop(obj['category'], obj['options']['uuid']);
+            manager.stop(
+                    obj['category'], obj['options']['uuid']);
             break;
         case CMD.LIST.toString():
             manager.list(obj['category']);
+            break;
+        case CMD.QMP.toString():
+            manager.qmp(
+                    obj['options']['uuid'],
+                    obj['options']['qmp_command']);
             break;
         default:
             console.log('not support cmd ' + obj['cmd']);
