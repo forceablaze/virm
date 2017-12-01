@@ -6,110 +6,87 @@ import DeviceDescription from './module/desc/DeviceDescription'
 import VirtualMachine from './module/device/vm'
 import Configuration from './module/conf';
 import Category from './manager/Category';
+import { delay } from './utils';
+import QMP from './module/qmp';
+
+import NetworkDevice from './module/device/net';
+import HardDisk from './module/device//disk';
+import TapDevice from './module/device/net/TapDevice.js';
+import BridgeDevice from './module/device/net/BridgeDevice.js';
 
 const fs = require('fs');
-
+const network = require('network');
 console.log(CONF);
 
 let vm = new VirtualMachine('New VM', (data) => {console.log(data)});
-
 vm.setCPUCore(2);
-vm.setMemory(2048);
+vm.setMemory(512);
+vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/test.qcow2'));
+
+let netdev= new NetworkDevice(new TapDevice());
+vm.addDevice(netdev);
+
+network.get_interfaces_list((err, list) => {
+    console.log(list);
+});
 
 
 try {
     vm.start();
-//    vm.serialize();
 } catch(e) {
     console.log(e);
 }
+
+let br = new BridgeDevice('br0');
+br.addif(netdev);
+
 let p1 = new Promise((resolve, reject) => {
         setTimeout(function() {
             resolve("Success");
             vm.stop();
 
-        }, 3000)
+        }, 600000)
     }
 )
 
-let array = [];
-let object = {};
-
-object['array'] = array;
-console.log(object['array'].__proto__);
 let category = new Category('VM', VirtualMachine);
 console.log(category);
 console.log(VirtualMachine.name);
 
-console.log(JSON.stringify(category, null, 2));
+process.on('SIGINT', () => {
+    vm.stop();
+});
 
-function isTrue() {
-    return false;
-}
+let qmp = new QMP();
+qmp.setEncoding('utf8');
 
-if(isTrue()) {
-    console.log("TRUE");
-}
+delay(3000)('done').then((value) => {
+    qmp.connect(vm.getMonitorSocketPath(), () => {
+        console.log('connected');
+    });
+});
 
-var intervalID = 0;
+qmp.on('vnc_connected', (ev) => {
+    console.log(ev);
+});
 
-var wait = 
-    ms => new Promise(
-        r => setTimeout(r, ms)
-    );
+qmp.on('powerdown', (ev) => {
+    console.log(ev);
+});
 
-var repeat = 
-    (ms, func) => new Promise(
-        r => (
-            intervalID = setInterval(func, ms), 
-            wait(ms).then(r)
-        )
-    );
+qmp.on('shutdown', (ev) => {
+    console.log(ev);
+});
 
-var myfunction = 
-    () => new Promise(
-        r => r(console.log('repeating...'))
-    );
+qmp.on('stop', (ev) => {
+    console.log(ev);
+});
 
-var stopAfter5Secs = 
-    () => new Promise(
-        r => r(setTimeout(() => { 
-                    clearInterval(intervalID);
-                    console.log('repeat end') 
-               } , 5000))
-    );
+qmp.on('ready', (cmds, evs) => {
+    console.log(cmds);
+    console.log(evs);
 
-repeat(1000, () => Promise.all([myfunction()])) // 1000 miliseconds = 1 second
-.then(stopAfter5Secs())  // starts timer to end repetitions
-.then(console.log('repeat start')); // informs that all actions were started correctly and we are waiting for them to finish
-
-var t = 500;
-var max = 5;
-
-function rejectDelay(reason) {
-	return new Promise(function(resolve, reject) {
-		setTimeout(reject.bind(null, reason), t); 
-	});
-}
-
-var p = Promise.reject();
-for(var i=0; i<max; i++) {
-	p = p.catch(attempt).catch(rejectDelay);
-}
-p = p.then(processResult).catch(errorHandler);
-
-
-function attempt() {
-	var rand = Math.random();
-	if(rand > 0.5) {
-		throw rand;
-	} else {
-		return rand;
-	}
-}
-function processResult(res) {
-	console.log(res);
-}
-function errorHandler(err) {
-	console.error(err);
-}
+    delay(3000000)('done').then((value) => {
+//        qmp.powerdown();
+    });
+});

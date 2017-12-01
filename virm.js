@@ -83,14 +83,6 @@ vorpal
     });
 
 vorpal
-    .command('create damain')
-    .option('--addresses <addresses>', 'The address of PCI device')
-    .action(function(args, cb) {
-        manager.createDAMain(args.options.addresses);
-        cb();
-    });
-
-vorpal
     .command('damain <uuid>')
     .action(function(args, cb) {
         network.get_active_interface((err, obj) => {

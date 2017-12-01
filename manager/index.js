@@ -18,6 +18,7 @@ import SubProcess from '../module/process';
 
 import CONF from '../conf';
 import { delay, retry, subnetize } from '../utils';
+import { createDAMain, startupDAMain, stopDAMain } from './DAMain';
 
 const CONF_PATH = 'virmanager.conf';
 
@@ -134,7 +135,7 @@ class Manager
                 this.createAgent(options.uuid);
                 break;
             case 'damain':
-                this.createDAMain(options.addresses);
+                createDAMain(this, options.addresses);
                 break;
             default:
                 console.log("Not support " + category + " creation.");
@@ -326,7 +327,7 @@ class Manager
             /* no category list type */
             case 'damain':
                 try {
-                    this.startupDAMain(uuid);
+                    startupDAMain(this, uuid);
                 } catch(err) {
                     console.log(err);
                 }
@@ -362,16 +363,7 @@ class Manager
                 break;
             /* no category list type */
             case 'damain':
-                /* remove route and meta before stop damain */
-                {
-                    this.destroyRoute(uuid);
-                    try {
-                        fs.unlinkSync(CONF.RUN_PATH + '/damain/' + uuid);
-                    } catch(err) {
-                        console.log(err);
-                    }
-                    this.__stop('vm', uuid);
-                }
+                stopDAMain(this, uuid);
                 break;
             default:
                 console.log("Not support " + categoryName + " creation.");
@@ -422,194 +414,6 @@ class Manager
     }
 
     /* DAMain code */
-    createDAMain(pciAddresses) {
-        let vm = new VirtualMachine('DAMain');
-
-        let args = [
-            'create',
-            '-f', 'qcow2', '-b', CONF.IMAGE_PATH + '/damain-1.1.04',
-            CONF.IMAGE_PATH + '/' + `${vm.uuid}`
-        ];
-
-        let createSnapshot = new SubProcess(CONF.BIN_PATH + '/qemu-img', args);
-        let result = createSnapshot.runSync();
-        console.log(result);
-
-        vm.setCPUCore(4);
-        vm.setMemory(4096);
-        vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
-
-        let netdev= new NetworkDevice(new TapDevice());
-        vm.addDevice(netdev);
-
-        if(pciAddresses !== undefined) {
-            let addresses = pciAddresses.split(',');
-
-            addresses.forEach((addr) => {
-                let pcidev = new PCIDevice(addr);
-                vm.addDevice(pcidev);
-            });
-        }
-
-        /* get the category list */
-        let category = this.categoryList.find((obj) => {
-            return obj.name == 'VM'
-        });
-
-        category.push(vm);
-        this.saveConfiguration();
-    }
-
-    setVMNetworkInterface(client, uuid, cidr) {
-        return new Promise((resolve, reject) => {
-            let vm = this.findDevice('vm', uuid);
-            let ip = undefined;
-            let mask = undefined;
-
-            if(vm === undefined) {
-                console.log('No VM found.');
-                return;
-            }
-
-            if(vm.instance == null) {
-                console.log('VM no running');
-                return;
-            }
-
-            if(cidr === undefined) {
-                ip = '192.168.1.1';
-                mask = '255.255.255.0'
-            } else {
-                let split = cidr.split('/');
-                ip = split[0];
-                mask = subnetize(split[1]);
-            }
-
-            console.log(ip);
-            console.log(mask);
-
-            let setNIC = () => {
-                client.sendTask('/sbin/ifconfig eth0 ' + ip +
-                        ' netmask ' + mask, 'done')
-                .then((value) => {
-                    if(value === 'done') {
-                        console.log('send task success');
-                        resolve('done');
-                    }
-                }).catch((err) => {
-                    if(!vm.instance)
-                        return;
-                    delay(2000)('reconnect').then((result) => {
-                        setNIC();
-                    });
-                });
-            };
-
-            let sync = () => {
-                client.getAgentVersion().then((value) => {
-                    console.log('Get agent value: ' + value);
-                    setNIC();
-                }).catch((err) => {
-                    if(!vm.instance)
-                        return;
-                    delay(2000)('reconnect').then((result) => {
-                        sync();
-                    });
-                });
-            };
-
-            sync();
-        });
-    }
-
-
-    __startupDAMain(uuid, cidr) {
-        let vm = this.findDevice('vm', uuid);
-
-        let task = (instance) => {
-            let client = new Agent(vm);
-
-            let tryGetNICAddress = () => {
-                client.getNICAddress('eth0')('ipv4').then((ip) => {
-                    console.log('ipv4:' + ip);
-
-                    let meta = {};
-                    meta['ip'] = ip;
-                    meta['mask'] = subnetize(cidr.split('/')[1]);
-                    meta['pid'] = instance.pid;
-
-                    let str = JSON.stringify(meta, null, 2);
-                    fs.writeFile(CONF.RUN_PATH + '/damain/' + uuid, str,
-                            'utf8', (err) => {
-                        if (err) {
-                            console.log(err);
-                        }
-                    });
-                }).catch((err) => {
-                    if(!vm.instance)
-                        return;
-                    delay(1000)('retry').then((result) => {
-                        tryGetNICAddress();
-                    });
-                });
-            };
-
-            /* setting NIC with client */
-            this.setVMNetworkInterface(client, uuid, cidr).then((value) => {
-                tryGetNICAddress();
-            });
-        };
-
-        if(!vm) {
-            throw new Error('No VM found');
-        }
-
-        vm.start()
-            .then((instance) => {
-                task(instance);
-                let netdevs = vm.getDevices('NetworkDevice');
-
-                console.log(netdevs);
-                let br = new BridgeDevice('da0');
-                br.addif(netdevs[0]);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
-    }
-
-    startupDAMain(uuid) {
-        let netdevs = os.networkInterfaces();
-        if(netdevs['da0'] === undefined) {
-            throw new Error('No da0 bridge found.');
-        }
-
-        let da0 = netdevs['da0'];
-
-        da0.forEach((item) => {
-            if(item.family === 'IPv4') {
-                let maskSize = cidrize(item.netmask);
-                let cidraddr = item.address + '/' + maskSize;
-                console.log('bridge da0 ip: ' + cidraddr);
-
-                let cidr = new cidrjs();
-                let list = cidr.list(cidraddr);
-
-                let addr = list[getRandomIntInclusive(0, list.length - 1)];
-                while(addr == item.address)
-                    addr = list[getRandomIntInclusive(0, list.length - 1)];
-
-                cidraddr = addr + '/' + maskSize;
-                console.log('set subnet ' + cidraddr + ' to damain');
-                try {
-                    this.__startupDAMain(uuid, cidraddr);
-                } catch(err) {
-                    console.log(err);
-                }
-            }
-        });
-    }
-
     discoveryiSCSITarget(uuid) {
         return new Promise((resolve, reject) => {
 
