@@ -10,6 +10,7 @@ import { delay } from './utils';
 import QMP from './module/qmp';
 
 import NetworkDevice from './module/device/net';
+import Device from './module/device/device';
 import HardDisk from './module/device//disk';
 import TapDevice from './module/device/net/TapDevice.js';
 import BridgeDevice from './module/device/net/BridgeDevice.js';
@@ -17,6 +18,38 @@ import BridgeDevice from './module/device/net/BridgeDevice.js';
 const fs = require('fs');
 const network = require('network');
 console.log(CONF);
+
+
+let netdev_test= new NetworkDevice(new TapDevice());
+let hd = new HardDisk(CONF.IMAGE_PATH + '/test.qcow2');
+let vm_test = new VirtualMachine('New VM', (data) => {console.log(data)});
+vm_test.addDevice(netdev_test);
+vm_test.addDevice(hd);
+let args = [];
+
+vm_test.unprepareDevice();
+
+let devices = Object.keys(vm_test.devices);
+devices.forEach((dev, key) => { console.log(dev) });
+
+/*
+hd = new HardDisk(CONF.IMAGE_PATH + '/test.qcow2');
+Object.setPrototypeOf(hd, Device.prototype);
+
+console.log(hd.__proto__.unprepare);
+hd.__proto__.unprepare();
+
+Object.setPrototypeOf(hd, hd.__prototype__);
+hd.__proto__.unprepare();
+
+/* super class's unprepare */
+//Object.getPrototypeOf(hd.__prototype__).unprepare();
+
+/* sub class's unprepare */
+//Object.getPrototypeOf(hd).unprepare();
+//console.log(Object.getPrototypeOf(hd).unprepare === Object.getPrototypeOf(hd.__prototype__).unprepare);
+
+//process.exit(0);
 
 let vm = new VirtualMachine('New VM', (data) => {console.log(data)});
 vm.setCPUCore(2);
@@ -45,7 +78,7 @@ let p1 = new Promise((resolve, reject) => {
             resolve("Success");
             vm.stop();
 
-        }, 600000)
+        }, 10000)
     }
 )
 

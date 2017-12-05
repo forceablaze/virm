@@ -382,8 +382,11 @@ class Manager
         if(!vm)
             return;
 
-        let qmp = this.createQMP(vm.uuid);
-        qmp.execute(command);
+        this.createQMP(vm.uuid).then((qmp) => {
+            qmp.execute(command, (obj) => { console.log(obj); });
+        }).catch((err) => {
+            console.log(err);
+        });
     }
 
     __createAgent(vm) {
@@ -429,28 +432,34 @@ class Manager
     }
 
     __createQMP(uuid, ev_handler) {
-        let vm = this.findDevice('vm', uuid);
+        return new Promise((resolve, reject) => {
 
-        if(vm) {
-            if(__qmps[vm.uuid] === undefined) {
-                __qmps[vm.uuid] = new QMP(vm);
+            let vm = this.findDevice('vm', uuid);
+            if(vm) {
+                if(__qmps[vm.uuid] === undefined) {
+                    __qmps[vm.uuid] = new QMP(vm);
 
-                let qmp = __qmps[vm.uuid];
-                qmp.setEncoding('utf8');
+                    let qmp = __qmps[vm.uuid];
+                    qmp.setEncoding('utf8');
 
-                for(let ev in ev_handler) {
-                    console.log('register ' + ev + ' handler');
-                    qmp.on(ev, ev_handler[ev]);
-                }
+                    for(let ev in ev_handler) {
+                        console.log('register ' + ev + ' handler');
+                        qmp.on(ev, ev_handler[ev]);
+                    }
 
-                delay(2000)('reconnect').then((result) => {
-                    qmp.connect(vm.getMonitorSocketPath(), () => {
-                        console.log('QMP connected');
+                    delay(2000)('reconnect').then((result) => {
+                        qmp.connect(vm.getMonitorSocketPath(), () => {
+                            console.log('QMP connected');
+                        });
+                        qmp.once('ready', (cmds, evs) => {
+                            resolve(__qmps[vm.uuid]);
+                        });
                     });
-                });
+                }
+                else resolve(__qmps[vm.uuid]);
             }
-            return __qmps[vm.uuid];
-        }
+            else reject(new Error('ENOENT'));
+        });
     }
 
     createQMP(uuid, ev_handler) {

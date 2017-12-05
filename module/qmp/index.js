@@ -22,10 +22,16 @@ class QMP extends net.Socket {
             let listener = (line) => {
                 try {
                     let obj = JSON.parse(line);
-                    console.log(obj);
                     if(obj['event'] !== undefined) {
                         console.log(obj.event);
                         this.emit(obj.event.toLowerCase(), obj);
+                    }
+                    else {
+                        /* if no command found */
+                        if(obj['return'] === undefined)
+                            console.log(obj);
+                        else
+                            this.emit('return', obj['return']);
                     }
                 } catch(err) {
                     console.log(err);
@@ -83,7 +89,8 @@ class QMP extends net.Socket {
         });
     }
 
-    execute(command) {
+    execute(command, handler) {
+        this.once('return', handler);
         this.write('{"execute": "' + command + '"}');
     }
 

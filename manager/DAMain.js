@@ -35,7 +35,9 @@ let createDAMain = (manager, pciAddresses) => {
     let result = createSnapshot.runSync();
     console.log(result);
 
-    vm.setCPUCore(4);
+    let cpus = os.cpus();
+
+    vm.setCPUCore(cpus.length / 2);
     vm.setMemory(4096);
     vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
@@ -169,7 +171,14 @@ let __startupDAMain = (manager, uuid, cidr) => {
                 manager.stop('damain', vm.uuid);
             },
         };
-        manager.createQMP(vm.uuid, ev_handler);
+        manager.createQMP(vm.uuid, ev_handler).then((qmp) => {
+            qmp.execute('query-cpus', (obj) => {
+                obj.forEach((cpu, index) => {
+                    console.log('CPU:' + cpu.CPU + ', thread_id:' + cpu.thread_id);
+                });
+            });
+        });
+
     };
 
     if(!vm) {
