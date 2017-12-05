@@ -6,6 +6,7 @@ import Device from '../device';
 import SubProcess from '../../process';
 
 const fs = require('fs');
+const path = require('path');
 
 class HardDisk extends Device
 {
@@ -50,6 +51,14 @@ class HardDisk extends Device
 
     get size() {
         return this._size;
+    }
+
+    prepare(...args) {
+        args[0].push("-drive");
+        args[0].push("file=" + path.resolve(this.path) + ",if=virtio");
+    }
+
+    unprepare() {
     }
 }
 

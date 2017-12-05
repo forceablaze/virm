@@ -91,6 +91,18 @@ class PCIDevice extends Device
     get pid() {
         return this._deviceId.pid;
     }
+
+    prepare(...args) {
+        let vfio = new VFIODevice(this);
+        vfio.bind();
+
+        args[0].push("-device");
+        args[0].push("vfio-pci,rombar=0,host=" + this.busnum);
+    }
+
+    unprepare() {
+        this.unbind();
+    }
 }
 
 export default PCIDevice;

@@ -8,6 +8,9 @@ class Description extends Serialization
         super();
         this._type =
             Object.getPrototypeOf(this).constructor.name;
+
+        /* pointer to the <Class>.prototype Object */
+        this.__prototype__ = this.__proto__;
     }
 
     get type() {

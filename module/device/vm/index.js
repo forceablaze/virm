@@ -136,6 +136,8 @@ class VirtualMachine extends Device
                 this.createInstance()
                     .then((instance) => {
                         resolve(instance);
+                    }).catch((err) => {
+                        reject(err);
                     });
             } catch(err) {
                 resolve(err);
@@ -190,80 +192,17 @@ class VirtualMachine extends Device
     }
 
     prepareDevice(list) {
-        for(let key in this.devices) {
-            let dev = this.devices[key];
+        Object.values(this.devices).forEach((dev) => {
             Object.setPrototypeOf(dev, Device.prototype);
-
-            switch(dev.type) {
-                case "HardDisk":
-                    this.prepareHardDisk(dev, list);
-                    break;
-                case "PCIDevice":
-                    this.preparePCIDevice(dev, list);
-                    break;
-                case "NetworkDevice":
-                    this.prepareNetworkDevice(dev, list);
-                    break;
-                default:
-                    console.log("Not supported device type: " + dev.type);
-            }
-        }
+            dev.prepare(list);
+        });
     }
 
     unprepareDevice() {
-        for(let key in this.devices) {
-            let dev = this.devices[key];
+        Object.values(this.devices).forEach((dev) => {
             Object.setPrototypeOf(dev, Device.prototype);
-
-            switch(dev.type) {
-                case "NetworkDevice":
-                    this.unprepareNetworkDevice(dev);
-                    break;
-                case "PCIDevice":
-                    this.unpreparePCIDevice(dev);
-                    break;
-                case "HardDisk":
-                    break;
-                default:
-                    console.log("Not supported device type: " + dev.type);
-            }
-        }
-    }
-
-    prepareHardDisk(disk, list) {
-        Object.setPrototypeOf(disk, HardDisk.prototype);
-
-        list.push("-drive");
-        list.push("file=" + path.resolve(disk.path) + ",if=virtio");
-    }
-
-    preparePCIDevice(pcidev, list) {
-        Object.setPrototypeOf(pcidev, PCIDevice.prototype);
-        let vfio = new VFIODevice(pcidev);
-        vfio.bind();
-
-        list.push("-device");
-        list.push("vfio-pci,rombar=0,host=" + pcidev.busnum);
-    }
-
-    prepareNetworkDevice(netdev, list) {
-        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
-        list.push("-netdev");
-        list.push("type=tap,id=net0,ifname=" + netdev.name + ",script=no,downscript=no");
-        list.push("-device");
-        list.push("virtio-net-pci,netdev=net0,mac=" + netdev.mac);
-
-        netdev.up();
-    }
-
-    unprepareNetworkDevice(netdev) {
-        Object.setPrototypeOf(netdev, NetworkDevice.prototype);
-        netdev.down();
-    }
-
-    unpreparePCIDevice(pcidev) {
-        Object.setPrototypeOf(pcidev, PCIDevice.prototype);
-        pcidev.unbind();
+            dev.unprepare();
+        });
     }
 
     toString() {

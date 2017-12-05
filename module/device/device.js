@@ -39,6 +39,24 @@ class Device extends DeviceDescription
     /* stop the instance. */
     stop() {
     }
+
+    /* prepare device before starting qemu */
+    prepare(...args) {
+        /* cast to the subclass that first create */
+        if(this.hasOwnProperty('__prototype__')) {
+            Object.setPrototypeOf(this, this.__prototype__);
+            this.prepare(...args);
+        }
+    }
+
+    /* unprepare device after stopping qemu*/
+    unprepare() {
+        /* cast to the subclass that first create */
+        if(this.hasOwnProperty('__prototype__')) {
+            Object.setPrototypeOf(this, this.__prototype__);
+            this.unprepare();
+        }
+    }
 }
 
 export default Device

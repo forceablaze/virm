@@ -61,6 +61,18 @@ class NetworkDevice extends Device
     toString() {
         return this.name;
     }
+
+    prepare(...args) {
+        args[0].push("-netdev");
+        args[0].push("type=tap,id=net0,ifname=" + this.name + ",script=no,downscript=no");
+        args[0].push("-device");
+        args[0].push("virtio-net-pci,netdev=net0,mac=" + this.mac);
+        this.up();
+    }
+
+    unprepare() {
+        this.down();
+    }
 }
 
 export default NetworkDevice;
