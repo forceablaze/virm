@@ -39,6 +39,10 @@ class VirtualMachine extends Device
             /* boot from disk */
             '-boot': 'c,strict=on'
         };
+
+        this.status = {
+            'shutdown': false,
+        };
     }
 
     createInstance() {
@@ -115,12 +119,13 @@ class VirtualMachine extends Device
                     .then((instance) => {
                         resolve(instance);
                     }).catch((err) => {
-                        console.log(err);
+                        reject(err);
                     });
             }
         });
     }
 
+    /* can not check qemu is start success or fail */
     __createInstance(args) {
         return new Promise((resolve, reject) => {
             this.instance = new SubProcess(CONF.BIN_PATH + '/qemu-system-x86_64', args,
@@ -141,16 +146,12 @@ class VirtualMachine extends Device
         }
 
         return new Promise((resolve) => {
-            try {
-                this.createInstance()
-                    .then((instance) => {
-                        resolve(instance);
-                    }).catch((err) => {
-                        reject(err);
-                    });
-            } catch(err) {
-                resolve(err);
-            }
+            this.createInstance()
+                .then((instance) => {
+                    resolve(instance);
+                }).catch((err) => {
+                    reject(err);
+                });
         });
     }
 

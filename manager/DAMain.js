@@ -22,6 +22,50 @@ import CONF from '../conf';
 const DAMAIN_NET_BRIDGE = 'da0';
 const DAMAIN_VER = '1.1.06';
 
+const cpus = os.cpus().map((cpu, index) => {
+    cpu.index = index;
+    return cpu;
+});
+
+/* exclude the first cpu */
+/* TODO each vm should be has it own cpu pool */
+const CPU_POOL = cpus.slice(1, cpus.length);
+const CPU_USED = [];
+
+let attachCPU = (num_of_cpu, thread_id) => {
+
+    let cpus = [];
+
+    for(let i = 0; i < num_of_cpu; i++) {
+        let cpu = CPU_POOL[0];
+
+        /* no enough cpu resource to attach */
+        if(cpu === undefined)
+            return;
+
+        /* get a cpu from CPU_POOL and push to cpus */
+        cpus.push(cpu);
+        CPU_USED.push(cpu);
+        CPU_POOL.splice(0, 1);
+    }
+
+    if(cpus.length == 0)
+        return;
+
+    let corelist = cpus.map((cpu) => {
+        return cpu.index;
+    }).toString();
+
+    let args = [
+        '-cp', corelist,
+        thread_id
+    ];
+
+    let createSnapshot = new SubProcess('taskset', args);
+    let result = createSnapshot.runSync();
+    console.log(result);
+}
+
 let createDAMain = (manager, pciAddresses) => {
     let vm = new VirtualMachine('DAMain');
 
@@ -35,7 +79,6 @@ let createDAMain = (manager, pciAddresses) => {
     let result = createSnapshot.runSync();
     console.log(result);
 
-    let cpus = os.cpus();
 
     vm.setCPUCore(cpus.length / 2);
     vm.setMemory(4096);
@@ -128,8 +171,30 @@ let __startupDAMain = (manager, uuid, cidr) => {
     let vm = manager.findDevice('vm', uuid);
 
     let task = (instance) => {
-        let client = manager.createAgent(uuid);
+        /* listen QMP event */
+        let ev_handler = {
+            'vnc_connnected': (ev) => { console.log(ev) },
+            'powerdown': (ev) => { console.log(ev) },
+            'shutdown': (ev) => {
+                vm.status.shutdown = true;
+            },
+            'stop': (ev) => {
+                console.log(ev);
+                if(vm.status.shutdown)
+                     manager.stop('damain', vm.uuid);
+            },
+        };
+        manager.createQMP(vm.uuid, ev_handler).then((qmp) => {
+            qmp.execute('query-cpus', (obj) => {
+                obj.forEach((cpu, index) => {
+                    console.log('CPU:' + cpu.CPU + ', thread_id:' + cpu.thread_id);
+                    /* assign 1 cpu to thread */
+                    attachCPU(1, cpu.thread_id);
+                });
+            });
+        });
 
+        let client = manager.createAgent(uuid);
         let tryGetNICAddress = () => {
             client.getNICAddress('eth0')('ipv4').then((ip) => {
                 console.log('ipv4:' + ip);
@@ -159,26 +224,6 @@ let __startupDAMain = (manager, uuid, cidr) => {
         setVMNetworkInterface(manager, client, uuid, cidr).then((value) => {
             tryGetNICAddress();
         });
-
-
-        /* listen QMP event */
-        let ev_handler = {
-            'vnc_connnected': (ev) => { console.log(ev) },
-            'powerdown': (ev) => { console.log(ev) },
-            'shutdown': (ev) => { console.log(ev) },
-            'stop': (ev) => {
-                console.log(ev);
-                manager.stop('damain', vm.uuid);
-            },
-        };
-        manager.createQMP(vm.uuid, ev_handler).then((qmp) => {
-            qmp.execute('query-cpus', (obj) => {
-                obj.forEach((cpu, index) => {
-                    console.log('CPU:' + cpu.CPU + ', thread_id:' + cpu.thread_id);
-                });
-            });
-        });
-
     };
 
     if(!vm) {
