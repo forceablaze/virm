@@ -42,19 +42,25 @@ class Device extends DeviceDescription
 
     /* prepare device before starting qemu */
     prepare(...args) {
-        /* cast to the subclass that first create */
-        if(this.hasOwnProperty('__prototype__')) {
-            Object.setPrototypeOf(this, this.__prototype__);
+        this.castThenDo(() => {
             this.prepare(...args);
-        }
+        });
     }
 
     /* unprepare device after stopping qemu*/
     unprepare() {
+        this.castThenDo(() => {
+            this.unprepare();
+        });
+    }
+
+    castThenDo(cb = () => {}) {
         /* cast to the subclass that first create */
         if(this.hasOwnProperty('__prototype__')) {
-            Object.setPrototypeOf(this, this.__prototype__);
-            this.unprepare();
+            if(this.__prototype__ !== undefined) {
+                Object.setPrototypeOf(this, this.__prototype__);
+                cb();
+            }
         }
     }
 }

@@ -17,6 +17,13 @@ const portfinder = require('portfinder');
 const path = require('path');
 const fs = require('fs');
 
+/* the device support prepare() and unprepare() */
+const PROTOTYPE_MAP = {
+    "HARDDISK": HardDisk.prototype,
+    "PCIDEVICE": PCIDevice.prototype,
+    "NETWORKDEVICE": NetworkDevice.prototype,
+};
+
 /* VNC base port */
 portfinder.basePort = 5900;
 
@@ -107,6 +114,8 @@ class VirtualMachine extends Device
                 this.__createInstance(argArray)
                     .then((instance) => {
                         resolve(instance);
+                    }).catch((err) => {
+                        console.log(err);
                     });
             }
         });
@@ -194,6 +203,7 @@ class VirtualMachine extends Device
     prepareDevice(list) {
         Object.values(this.devices).forEach((dev) => {
             Object.setPrototypeOf(dev, Device.prototype);
+            dev.__prototype__ = PROTOTYPE_MAP[dev.type.toUpperCase()];
             dev.prepare(list);
         });
     }
@@ -201,6 +211,7 @@ class VirtualMachine extends Device
     unprepareDevice() {
         Object.values(this.devices).forEach((dev) => {
             Object.setPrototypeOf(dev, Device.prototype);
+            dev.__prototype__ = PROTOTYPE_MAP[dev.type.toUpperCase()];
             dev.unprepare();
         });
     }

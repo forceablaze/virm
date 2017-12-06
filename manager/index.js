@@ -294,6 +294,8 @@ class Manager
 
         Object.setPrototypeOf(device,
                 PROTOTYPE_MAP[categoryName.toUpperCase()]);
+        device.__prototype__ =
+            PROTOTYPE_MAP[categoryName.toUpperCase()];
 
         return device;
     }

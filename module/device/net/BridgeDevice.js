@@ -65,7 +65,6 @@ class BridgeDevice extends Description
 
         if(result.status != 0)
             throw new Error(result.stderr);
-
     }
 }
 
