@@ -5,7 +5,7 @@ import SubProcess from './module/process';
 import CONF from './conf';
 
 import { CMD, SYNC_BYTE, END_BYTE } from './reqres';
-const { cidrize, getRandomIntInclusive } = require('./utils');
+import { cidrize, getRandomIntInclusive } from './utils';
 
 const AsyncLock = require('async-lock');
 const fs = require('fs');

@@ -9,7 +9,7 @@ const network = require('network');
 const cidrjs = require('cidr-js');
 const ip = require('ip');
 
-const { cidrize, getRandomIntInclusive } = require('./utils');
+import { cidrize, getRandomIntInclusive } from './utils';
 
 const manager = Manager.getInstance();
 const WORKING_DIR = __dirname;

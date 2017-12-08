@@ -1,14 +1,18 @@
 {
   "name": "virmanager",
   "version": "1.0.0",
+  "bin": "server.js",
   "description": "A Manager to manage the virtual machine",
   "main": "index.js",
   "scripts": {
+    "main": "node build/server.min.js",
+    "server": "babel-node src/server.js",
+    "client": "babel-node src/client.js",
     "test": "babel-node test.js",
-    "server": "babel-node server.js",
-    "client": "babel-node client.js",
     "virm": "babel-node virm.js",
-    "build": "babel-node build.js"
+    "build": "babel-node build.js",
+    "pkg": "pkg -d -t node6-linux-x64 build/",
+    "rollup": "rollup --config rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +31,7 @@
     "node-random-name": "^1.0.1",
     "node-serialize": "0.0.4",
     "options-parser": "^0.4.0",
+    "pkg": "^4.2.6",
     "portfinder": "^1.0.13",
     "random-mac": "0.0.4",
     "typescript": "^2.5.2",
@@ -36,6 +41,13 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1"
+    "babel-loader": "^7.1.2",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "rollup": "^0.52.1",
+    "rollup-plugin-babel": "^3.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "webpack": "^3.10.0"
   }
 }

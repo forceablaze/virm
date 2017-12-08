@@ -18,7 +18,7 @@ import Configuration from '../module/conf';
 import SubProcess from '../module/process';
 
 import CONF from '../conf';
-import { delay, retry, subnetize } from '../utils';
+import { cidrize, getRandomIntInclusive, delay, retry, subnetize } from '../utils';
 import { createDAMain, startupDAMain, stopDAMain } from './DAMain';
 
 const CONF_PATH = 'virmanager.conf';
@@ -29,8 +29,6 @@ const readline = require('readline');
 import os from 'os';
 const cidrjs = require('cidr-js');
 const ip = require('ip');
-
-const { cidrize, getRandomIntInclusive } = require('../utils');
 
 let __configuration = new Configuration();
 
