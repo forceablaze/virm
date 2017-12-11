@@ -5,7 +5,6 @@
   "description": "A Manager to manage the virtual machine",
   "main": "index.js",
   "scripts": {
-    "main": "node build/server.min.js",
     "server": "babel-node src/server.js",
     "client": "babel-node src/client.js",
     "test": "babel-node test.js",

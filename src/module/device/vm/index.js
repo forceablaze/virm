@@ -145,7 +145,7 @@ class VirtualMachine extends Device
             throw 'Device already started.';
         }
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.createInstance()
                 .then((instance) => {
                     resolve(instance);
@@ -201,20 +201,28 @@ class VirtualMachine extends Device
     addPCIDevice() {
     }
 
-    prepareDevice(list) {
+    forEachDevice(method_name, ...args) {
+        for(let key in this.devices) {
+            let dev = this.devices[key];
+            Object.setPrototypeOf(dev, Device.prototype);
+            dev.__prototype__ = PROTOTYPE_MAP[dev.type.toUpperCase()];
+            dev[method_name](...args);
+        }
+        /*
         Object.values(this.devices).forEach((dev) => {
             Object.setPrototypeOf(dev, Device.prototype);
             dev.__prototype__ = PROTOTYPE_MAP[dev.type.toUpperCase()];
             dev.prepare(list);
         });
+        */
+    }
+
+    prepareDevice(list) {
+        this.forEachDevice('prepare', list);
     }
 
     unprepareDevice() {
-        Object.values(this.devices).forEach((dev) => {
-            Object.setPrototypeOf(dev, Device.prototype);
-            dev.__prototype__ = PROTOTYPE_MAP[dev.type.toUpperCase()];
-            dev.unprepare();
-        });
+        this.forEachDevice('unprepare');
     }
 
     toString() {

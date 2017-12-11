@@ -192,7 +192,7 @@ let __startupDAMain = (manager, uuid, cidr) => {
                     attachCPU(1, cpu.thread_id);
                 });
             });
-        });
+        }).catch((err) => { console.log(err) });
 
         let client = manager.createAgent(uuid);
         let tryGetNICAddress = () => {

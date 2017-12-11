@@ -28,11 +28,11 @@ class TapDevice extends Description
 
     down() {
         let ifconf = new SubProcess('ifconfig', [this.name, 'down']);
-        result = ifconf.runSync();
+        let result = ifconf.runSync();
         console.log(result);
 
         let tunctl = new SubProcess('tunctl', ['-d', this.name]);
-        let result = tunctl.runSync();
+        result = tunctl.runSync();
         console.log(result);
     }
 }

@@ -32,5 +32,13 @@ export default [
       format: 'cjs',
     },
     plugins: plugins
+  },
+  {
+    input: 'test.js',
+    output: {
+      file: 'build/test.min.js',
+      format: 'cjs',
+    },
+    plugins: plugins
   }
 ]
