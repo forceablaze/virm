@@ -20,7 +20,7 @@ import SubProcess from '../module/process';
 import CONF from '../conf';
 
 const DAMAIN_NET_BRIDGE = 'da0';
-const DAMAIN_VER = '1.1.06';
+const DAMAIN_VER = 'latest';
 
 const cpus = os.cpus().map((cpu, index) => {
     cpu.index = index;
