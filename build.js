@@ -1,35 +1,11 @@
 'use strict'
 
-const { compile } = require('nexe');
+const TARGET = 'node6-linux-x64'
 
-let compileClient = () => {
-    console.log('compile client.js');
-    compile({
-      input: './client.js',
-      build: true,
-      loglevel: 'verbose'
-    }).then(() => {
-      console.log('compile client.js success')
-    })
-}
+const { exec } = require('pkg')
 
-console.log('compile server.js');
-compile({
-  input: './server.js',
-  build: true,
-  loglevel: 'verbose'
-  /*
-  patches: [
-    async (compiler, next) => {
-      await compiler.setFileContentsAsync(
-        'lib/new-native-module.js',
-        'module.exports = 42'
-      )
-      return next()
-    }
-  ]
-  */
-}).then(() => {
-  console.log('compile server.js success')
-  compileClient();
-})
+exec([ 'build/server.min.js', '--target', TARGET, '--output', 'server' ]).then(() => {
+    exec([ 'build/client.min.js', '--target', TARGET, '--output', 'client' ]).then(() => {
+        exec([ 'build/virm.min.js', '--target', TARGET, '--output', 'virm-cli' ])
+    });
+});

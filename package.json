@@ -1,16 +1,14 @@
 {
   "name": "virmanager",
   "version": "1.0.0",
-  "bin": "server.js",
   "description": "A Manager to manage the virtual machine",
-  "main": "index.js",
   "scripts": {
     "server": "babel-node src/server.js",
     "client": "babel-node src/client.js",
     "test": "babel-node test.js",
     "virm": "babel-node virm.js",
-    "build": "babel-node build.js",
-    "pkg": "pkg -d -t node6-linux-x64 build/",
+    "build": "node build.js",
+    "pkg": "pkg -d -t node6-linux-x64 build/virm.min.js",
     "rollup": "rollup --config rollup.config.js"
   },
   "repository": {
