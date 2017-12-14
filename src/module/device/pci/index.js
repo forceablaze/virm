@@ -2,7 +2,7 @@
 
 import Device from '../device';
 import SubProcess from '../../process';
-import VFIODevice form './VFIODevice.js';
+import VFIODevice from './VFIODevice.js';
 import CONF from '../../../conf';
 
 const fs = require('fs');
