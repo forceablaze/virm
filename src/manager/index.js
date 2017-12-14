@@ -21,7 +21,7 @@ import CONF from '../conf';
 import { cidrize, getRandomIntInclusive, delay, retry, subnetize } from '../utils';
 import { createDAMain, startupDAMain, stopDAMain } from './DAMain';
 
-const CONF_PATH = 'virmanager.conf';
+const CONF_PATH = './virmanager.conf';
 
 const fs = require('fs');
 const readline = require('readline');
