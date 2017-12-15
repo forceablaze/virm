@@ -21,8 +21,6 @@ import CONF from '../conf';
 import { cidrize, getRandomIntInclusive, delay, retry, subnetize } from '../utils';
 import { createDAMain, startupDAMain, stopDAMain } from './DAMain';
 
-const CONF_PATH = './virmanager.conf';
-
 const fs = require('fs');
 const readline = require('readline');
 
@@ -69,7 +67,7 @@ class Manager
         console.log("load configuration");
 
         try {
-            let obj = __configuration.unserialize(CONF_PATH);
+            let obj = __configuration.unserialize(CONF.VIRM_CONF_PATH);
 
             __configuration.importConfiguration(obj);
 
@@ -108,7 +106,7 @@ class Manager
     }
 
     saveConfiguration() {
-        __configuration.serialize(CONF_PATH);
+        __configuration.serialize(CONF.VIRM_CONF_PATH);
     }
 
     create(category, options) {

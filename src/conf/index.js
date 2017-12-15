@@ -35,7 +35,9 @@ const CONF = {
 
     VIRM_RUN_PATH: install_path + '/var/run/virm',
 
-    LOG_PATH: install_path + '/var/log'
+    LOG_PATH: install_path + '/var/log',
+
+    VIRM_CONF_PATH: install_path + '/virm/virm.conf'
 };
 
 export default CONF;
