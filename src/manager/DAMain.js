@@ -239,7 +239,6 @@ let __startupDAMain = (manager, uuid) => {
                     }
                 });
             }).catch((err) => {
-                console.log(err);
                 if(!vm.instance)
                     return;
                 delay(1000)('retry').then((result) => {
