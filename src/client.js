@@ -1,6 +1,9 @@
 import CONF from './conf';
 
-import { CMD, CATEGORY, Req, Res } from './reqres';
+import { CMD, SYNC_BYTE, END_BYTE, CATEGORY, Req, Res } from './reqres';
+
+const AsyncLock = require('async-lock');
+const events = require('events');
 
 const net = require('net');
 const readline = require('readline');
@@ -22,6 +25,27 @@ try {
     process.exit(10);
 }
 
+/* buffer handler */
+const inBuffer = [];
+const lock = new AsyncLock();
+const emitter = new events.EventEmitter();
+
+/* get the response from server */
+emitter.on('sync', (chunk, i) => {
+});
+
+emitter.on('end', (chunk, i) => {
+    const buf = Buffer.from(inBuffer);
+
+    lock.acquire('key', (done) => {
+        /* clear buffer */
+        inBuffer.splice(0, inBuffer.length);
+        done();
+    });
+    let data = JSON.parse(buf.toString('utf8'));
+    console.log(data);
+});
+
 const command = opts['opt']['cmd'];
 const category = opts['opt']['category'];
 const timeout = opts['opt']['timeout'];
@@ -30,7 +54,6 @@ const timeout = opts['opt']['timeout'];
 const reqBuilder = new Req.ReqBuilder();
 
 const client = new net.Socket();
-client.setEncoding('utf8');
 
 process.on('SIGINT', () => {
     rl.close();
@@ -67,6 +90,26 @@ let generateReq = () => {
 
 client.on('error', (err) => {
 
+});
+
+client.on('data', (chunk) => {
+    for(let i = 0; i < chunk.length; i++) {
+        switch(chunk[i]) {
+            case SYNC_BYTE:
+                emitter.emit('sync', chunk, i);
+                break;
+            case END_BYTE:
+                emitter.emit('end', chunk, i);
+                break;
+            default: {
+                lock.acquire('key', (done) => {
+                    inBuffer.push(chunk[i]);
+                    done();
+                });
+            }
+                break;
+        }
+     }
 });
 
 client.connect(CONF.SOCKET_PATH, () => {

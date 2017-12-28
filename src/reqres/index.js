@@ -6,7 +6,7 @@ const SYNC_BYTE = 0xFF;
 const END_BYTE = 0xFE;
 
 const CMD = new Enum(
-        ['LIST', 'CREATE', 'START', 'STOP', 'ADD', 'QMP']);
+        ['LIST', 'CREATE', 'START', 'STOP', 'ADD', 'FIND', 'QMP']);
 
 const CATEGORY = new Enum(
         ['VM', 'NET', 'DISK', 'PCI', 'ROUTE', 'DAMAIN']);
@@ -32,7 +32,7 @@ class Req
         for(let i = 0; i < str.length; i++) {
             buffer[i + 1] = Number(str.charCodeAt(i));
         }
-        
+
         buffer[buffer.length - 1] = END_BYTE;
 
         return new Buffer(buffer.buffer);
@@ -85,6 +85,44 @@ class Req
 
 class Res
 {
+    constructor(data) {
+        this._data = data;
+    }
+
+    toString() {
+        return JSON.stringify(this._data);
+    }
+
+    toBuffer() {
+        let buffer = new Uint8Array(this.toString().length + 2);
+        buffer[0] = SYNC_BYTE;
+
+        let str = this.toString();
+        for(let i = 0; i < str.length; i++) {
+            buffer[i + 1] = Number(str.charCodeAt(i));
+        }
+
+        buffer[buffer.length - 1] = END_BYTE;
+
+        return new Buffer(buffer.buffer);
+    }
+
+    static get ResBuilder() {
+        return class ResBuilder {
+                constructor() {
+                    this._data = {};
+                }
+
+                setData(data) {
+                    this._data = data;
+                    return this;
+                }
+
+                build() {
+                    return new Res(this._data);
+                }
+            };
+    }
 }
 
 export { SYNC_BYTE, END_BYTE, Req, Res, CMD, CATEGORY };

@@ -4,7 +4,7 @@ import Manager from './manager';
 import SubProcess from './module/process';
 import CONF from './conf';
 
-import { CMD, SYNC_BYTE, END_BYTE } from './reqres';
+import { CMD, SYNC_BYTE, END_BYTE, Res} from './reqres';
 import { cidrize, getRandomIntInclusive } from './utils';
 
 const AsyncLock = require('async-lock');
@@ -35,8 +35,12 @@ const inBuffer = [];
 const lock = new AsyncLock();
 const emitter = new events.EventEmitter(); 
 
-emitter.on('exec', (obj) => {
+emitter.on('exec', (client, obj) => {
     console.log(obj);
+
+    let resBuilder = new Res.ResBuilder();
+    let data = {};
+
     switch(obj['cmd']) {
         case CMD.CREATE.toString():
             manager.create(obj['category'], obj['options']);
@@ -48,8 +52,18 @@ emitter.on('exec', (obj) => {
             manager.stop(
                     obj['category'], obj['options']['uuid']);
             break;
-        case CMD.LIST.toString():
-            manager.list(obj['category']);
+        case CMD.LIST.toString(): {
+            let array = [];
+            let list = manager.list(obj['category']);
+            for(let key in list) {
+                array.push(list[key].uuid);
+            }
+            data[obj['category']] = array;
+        }
+            break;
+        case CMD.FIND.toString():
+            data = manager.findDevice(obj['category'],
+                    obj['options']['uuid'], obj['options']['name']).uuid;
             break;
         case CMD.QMP.toString():
             manager.qmp(
@@ -60,13 +74,17 @@ emitter.on('exec', (obj) => {
             console.log('not support cmd ' + obj['cmd']);
             break;
     }
+
+    resBuilder.setData(data);
+    emitter.emit('response', client,
+            resBuilder.build().toBuffer());
 });
 
 emitter.on('sync', (chunk, i) => {
     console.log('get a request');
 });
 
-emitter.on('end', (chunk, i) => {
+emitter.on('end', (chunk, i, client) => {
     const buf = Buffer.from(inBuffer);
 
     lock.acquire('key', (done) => {
@@ -74,8 +92,12 @@ emitter.on('end', (chunk, i) => {
         inBuffer.splice(0, inBuffer.length);
         done();
 
-        emitter.emit('exec', JSON.parse(buf.toString('utf8')));
+        emitter.emit('exec', client, JSON.parse(buf.toString('utf8')));
     });
+});
+
+emitter.on('response', (client, buf) => {
+    client.write(buf);
 });
 
 const unixServer = net.createServer(function(client) {
@@ -91,7 +113,7 @@ const unixServer = net.createServer(function(client) {
                         emitter.emit('sync', chunk, i);
                         break;
                     case END_BYTE:
-                        emitter.emit('end', chunk, i);
+                        emitter.emit('end', chunk, i, client);
                         break;
                     default: {
                         lock.acquire('key', (done) => {
