@@ -31,14 +31,16 @@ class VirtualMachine extends Device
 {
     constructor(name) {
         super();
+
+        this.name = name;
         this._args = {
-            '-name': name,
             '-uuid': `${this.uuid}`,
             '-machine': 'pc-i440fx-2.3,accel=kvm,usb=off',
             '-cpu': 'host',
             /* boot from disk */
             '-boot': 'c,strict=on'
         };
+
 
         this.status = {
             'shutdown': false,
@@ -49,6 +51,10 @@ class VirtualMachine extends Device
         return new Promise((resolve, reject) => {
 
             let argArray = [];
+
+            argArray.push('-name');
+            argArray.push(this.name);
+
             for(let key in this._args) {
                 console.log("key: " + key + " value: " + this._args[key]);
                 argArray.push(key);
@@ -226,7 +232,7 @@ class VirtualMachine extends Device
     }
 
     toString() {
-        return this._args['-name'] + ":" + this._args['-uuid'];
+        return this.name + ":" + this._args['-uuid'];
     }
 }
 

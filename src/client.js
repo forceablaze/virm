@@ -12,7 +12,7 @@ try {
         cmd: { default: 'list', help: 'support list, create, start, stop, add, qmp' },
         category: { default: 'vm', help: 'the category of the command to do' },
         uuid: { help: 'device uuid' },
-        name: { help: 'the name set to the VM' },
+        name: { help: 'the name of the VM' },
         addresses: { help: 'the PCI addresses 01:00.0,02:00.0' },
         timeout: { default: 3000 },
 
@@ -56,7 +56,7 @@ let generateReq = () => {
     if(opts['opt']['uuid'] !== undefined)
         reqBuilder.setUUID(opts['opt']['uuid']);
     if(opts['opt']['name'] !== undefined)
-        reqBuilder.setUUID(opts['opt']['name']);
+        reqBuilder.setName(opts['opt']['name']);
     if(opts['opt']['addresses'] !== undefined)
         reqBuilder.setPCIAddresses(opts['opt']['addresses']);
     if(opts['opt']['qmp'] !== undefined)

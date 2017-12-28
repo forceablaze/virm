@@ -284,16 +284,26 @@ class Manager
         return category.list;
     }
 
-    findDevice(categoryName, uuid) {
+    findDevice(categoryName, uuid, name) {
         /* get the category list */
         let category = this.categoryList.find((obj) => {
             return obj.name == categoryName.toUpperCase();
         });
 
         let device = null;
-        for(let key in category.list) {
-            if(key == uuid)
-                device = category.list[key];
+
+        if(uuid !== undefined) {
+            for(let key in category.list) {
+                if(key == uuid)
+                    device = category.list[key];
+            }
+        } else if(name !== undefined) {
+            for(let key in category.list) {
+                if(category.list[key].hasOwnProperty('name')) {
+                    if(category.list[key]['name'] == name)
+                        device = category.list[key];
+                }
+            }
         }
 
         if(!device)
@@ -475,7 +485,7 @@ class Manager
         return this.__createQMP(uuid, ev_handler);
     }
 
-    /* DAMain code */
+    /* DAMain code depcreated */
     discoveryiSCSITarget(uuid) {
         return new Promise((resolve, reject) => {
 
@@ -616,8 +626,9 @@ class Manager
         netdevs = vm.getDevices('NetworkDevice');
         console.log(netdevs);
 
+        let dev = this.findDevice('vm', undefined, 'DAMain');
+        console.log(dev);
 
-        console.log(list);
         /*
         let pcidev = new PCIDevice("03:00.0");
 
