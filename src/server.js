@@ -9,11 +9,6 @@ import { cidrize, getRandomIntInclusive } from './utils';
 
 const AsyncLock = require('async-lock');
 const fs = require('fs');
-
-/* for query ip address */
-const network = require('network');
-const cidrjs = require('cidr-js');
-const ip = require('ip');
 const net = require('net');
 
 const events = require('events');
