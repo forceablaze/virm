@@ -229,13 +229,18 @@ class Manager
         return pcidev;
     }
 
-    createNetworkDevice() {
+    createNetworkDevice(ip, mask) {
         /* get the category list */
         let category = this.categoryList.find((obj) => {
             return obj.name == 'NET'
         });
 
         let netdev= new NetworkDevice(new TapDevice());
+        if(ip !== undefined)
+            netdev.ip = ip;
+        if(mask !== undefined)
+            netdev.mask = mask;
+
         console.log(netdev);
 
         category.push(netdev);
@@ -275,6 +280,8 @@ class Manager
             Object.setPrototypeOf(category.list[key], Device.prototype);
             console.log(category.list[key].uuid);
         }
+
+        return category.list;
     }
 
     findDevice(categoryName, uuid) {
@@ -597,6 +604,20 @@ class Manager
     /* END DAMain code */
 
     test(str) {
+
+        let list = this.list('NET');
+
+        console.log(list);
+        let vm = new VirtualMachine('DAMain');
+        let netdev= this.createNetworkDevice('192.168.61.2');
+        let netdevs = vm.getDevices('NetworkDevice');
+        console.log(netdevs);
+        vm.addDevice(netdev);
+        netdevs = vm.getDevices('NetworkDevice');
+        console.log(netdevs);
+
+
+        console.log(list);
         /*
         let pcidev = new PCIDevice("03:00.0");
 

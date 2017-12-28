@@ -106,7 +106,7 @@ class Agent {
                     nic['ip-addresses'].forEach((item) => {
                         if(item['ip-address'] !== undefined &&
                             item['ip-address-type'] === type) {
-                            resolve(item['ip-address']);
+                            resolve(item['ip-address'] + '/' + item['prefix'].toString());
                             return;
                         }
                     });

@@ -6,7 +6,7 @@
     "server": "babel-node src/server.js",
     "client": "babel-node src/client.js",
     "test": "babel-node test.js",
-    "virm": "babel-node virm.js",
+    "virm": "babel-node src/virm.js",
     "build": "node build.js",
     "pkg": "pkg -d -t node6-linux-x64 build/virm.min.js",
     "rollup": "rollup --config rollup.config.js"

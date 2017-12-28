@@ -46,6 +46,14 @@ class NetworkDevice extends Device
         this._ip = ip;
     }
 
+    get mask() {
+        return this._mask;
+    }
+
+    set mask(mask) {
+        this._mask = mask;
+    }
+
     get name() {
         return this.netdev.name;
     }

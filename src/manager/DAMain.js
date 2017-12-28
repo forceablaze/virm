@@ -22,6 +22,12 @@ import CONF from '../conf';
 const DAMAIN_NET_BRIDGE = 'da0';
 const DAMAIN_VER = 'latest';
 
+const DAMAIN_BRIDGE_IF = {
+    'family': 'IPv4',
+    'address': '192.168.61.1',
+    'netmask': '255.255.255.0',
+};
+
 const cpus = os.cpus().map((cpu, index) => {
     cpu.index = index;
     return cpu;
@@ -79,13 +85,37 @@ let createDAMain = (manager, pciAddresses) => {
     let result = createSnapshot.runSync();
     console.log(result);
 
-
     vm.setCPUCore(cpus.length / 2);
     vm.setMemory(4096);
     vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
-    let netdev= manager.createNetworkDevice();
-    vm.addDevice(netdev);
+    if(DAMAIN_BRIDGE_IF.family === 'IPv4') {
+        let maskSize = cidrize(DAMAIN_BRIDGE_IF.netmask);
+        let cidraddr = DAMAIN_BRIDGE_IF.address + '/' + maskSize;
+        console.log('bridge ip: ' + cidraddr);
+
+        let cidr = new cidrjs();
+        let list = cidr.list(cidraddr);
+
+        /* query all network devices that have been recorded */
+        let netdevs = manager.list('NET');
+        let addrs = [];
+        for(let key in netdevs) {
+            Object.setPrototypeOf(netdevs[key], NetworkDevice.prototype);
+            addrs.push(netdevs[key].ip);
+        }
+
+        let addr  = list[getRandomIntInclusive(0, list.length - 1)];
+        while(addrs.includes(addr) || addr == DAMAIN_BRIDGE_IF.address) {
+            addr = list[getRandomIntInclusive(0, list.length - 1)];
+        }
+
+        cidraddr = addr + '/' + maskSize;
+        console.log('set subnet ' + cidraddr + ' to damain');
+
+        let netdev= manager.createNetworkDevice(addr, DAMAIN_BRIDGE_IF.netmask);
+        vm.addDevice(netdev);
+    }
 
     if(pciAddresses !== undefined) {
         let addresses = pciAddresses.split(',');
@@ -107,11 +137,9 @@ let createDAMain = (manager, pciAddresses) => {
     return vm;
 }
 
-let setVMNetworkInterface = (manager, client, uuid, cidr) => {
+let setVMNetworkInterface = (manager, client, uuid, ip, mask) => {
     return new Promise((resolve, reject) => {
         let vm = manager.findDevice('vm', uuid);
-        let ip = undefined;
-        let mask = undefined;
 
         if(vm === undefined) {
             console.log('No VM found.');
@@ -123,13 +151,9 @@ let setVMNetworkInterface = (manager, client, uuid, cidr) => {
             return;
         }
 
-        if(cidr === undefined) {
+        if(ip === undefined || mask === undefined) {
             ip = '192.168.1.1';
             mask = '255.255.255.0'
-        } else {
-            let split = cidr.split('/');
-            ip = split[0];
-            mask = subnetize(split[1]);
         }
 
         console.log(ip);
@@ -169,7 +193,7 @@ let setVMNetworkInterface = (manager, client, uuid, cidr) => {
     });
 }
 
-let __startupDAMain = (manager, uuid, cidr) => {
+let __startupDAMain = (manager, uuid) => {
     let vm = manager.findDevice('vm', uuid);
 
     let task = (instance) => {
@@ -198,12 +222,13 @@ let __startupDAMain = (manager, uuid, cidr) => {
 
         let client = manager.createAgent(uuid);
         let tryGetNICAddress = () => {
-            client.getNICAddress('eth0')('ipv4').then((ip) => {
-                console.log('ipv4:' + ip);
+            client.getNICAddress('eth0')('ipv4').then((cidr) => {
+                let _cidr = cidr.split('/');
+                console.log('ipv4 cidr:' + cidr);
 
                 let meta = {};
-                meta['ip'] = ip;
-                meta['mask'] = subnetize(cidr.split('/')[1]);
+                meta['ip'] = _cidr[0];
+                meta['mask'] = subnetize(_cidr[1]);
                 meta['pid'] = instance.pid;
 
                 let str = JSON.stringify(meta, null, 2);
@@ -214,6 +239,7 @@ let __startupDAMain = (manager, uuid, cidr) => {
                     }
                 });
             }).catch((err) => {
+                console.log(err);
                 if(!vm.instance)
                     return;
                 delay(1000)('retry').then((result) => {
@@ -222,8 +248,15 @@ let __startupDAMain = (manager, uuid, cidr) => {
             });
         };
 
+        let netdevs = vm.getDevices('NetworkDevice');
+        if(netdevs.length == 0)
+            return;
+
+        Object.setPrototypeOf(netdevs[0], NetworkDevice.prototype);
+
         /* setting NIC with client */
-        setVMNetworkInterface(manager, client, uuid, cidr).then((value) => {
+        setVMNetworkInterface(manager, client, uuid,
+                netdevs[0].ip, netdevs[0].mask).then((value) => {
             tryGetNICAddress();
         });
     };
@@ -253,42 +286,11 @@ let __startupDAMain = (manager, uuid, cidr) => {
 }
 
 let startupDAMain = (manager, uuid) => {
-    /*
-    let netdevs = os.networkInterfaces();
-    if(netdevs[DAMAIN_NET_BRIDGE] === undefined) {
-        throw new Error('No bridge found.');
+    try {
+        __startupDAMain(manager, uuid);
+    } catch(err) {
+        console.log(err);
     }
-
-    let da0 = netdevs[DAMAIN_NET_BRIDGE];
-    */
-    let item = {
-        'family': 'IPv4',
-        'address': '192.168.61.1',
-        'netmask': '255.255.255.0',
-    };
-
-//    da0.forEach((item) => {
-        if(item.family === 'IPv4') {
-            let maskSize = cidrize(item.netmask);
-            let cidraddr = item.address + '/' + maskSize;
-            console.log('bridge ip: ' + cidraddr);
-
-            let cidr = new cidrjs();
-            let list = cidr.list(cidraddr);
-
-            let addr = list[getRandomIntInclusive(0, list.length - 1)];
-            while(addr == item.address)
-                addr = list[getRandomIntInclusive(0, list.length - 1)];
-
-            cidraddr = addr + '/' + maskSize;
-            console.log('set subnet ' + cidraddr + ' to damain');
-            try {
-                __startupDAMain(manager, uuid, cidraddr);
-            } catch(err) {
-                console.log(err);
-            }
-        }
-//    });
 }
 
 let stopDAMain = (manager, uuid) => {
