@@ -57,8 +57,10 @@ emitter.on('exec', (client, obj) => {
         }
             break;
         case CMD.FIND.toString():
-            data = manager.findDevice(obj['category'],
-                    obj['options']['uuid'], obj['options']['name']).uuid;
+            let dev = manager.findDevice(obj['category'],
+                    obj['options']['uuid'], obj['options']['name']);
+            if(dev)
+                data = dev.uuid;
             break;
         case CMD.QMP.toString():
             manager.qmp(

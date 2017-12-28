@@ -43,7 +43,8 @@ emitter.on('end', (chunk, i) => {
         done();
     });
     let data = JSON.parse(buf.toString('utf8'));
-    console.log(data);
+    let length = Object.keys(data).length;
+    process.emit('SIGINT', length);
 });
 
 const command = opts['opt']['cmd'];
@@ -55,10 +56,10 @@ const reqBuilder = new Req.ReqBuilder();
 
 const client = new net.Socket();
 
-process.on('SIGINT', () => {
+process.on('SIGINT', (length) => {
     rl.close();
     client.destroy();
-    process.exit(0);
+    process.exit(length);
 });
 
 /* parse each line */
