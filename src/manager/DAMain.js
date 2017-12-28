@@ -84,7 +84,7 @@ let createDAMain = (manager, pciAddresses) => {
     vm.setMemory(4096);
     vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
-    let netdev= new NetworkDevice(new TapDevice());
+    let netdev= manager.createNetworkDevice();
     vm.addDevice(netdev);
 
     if(pciAddresses !== undefined) {
@@ -103,6 +103,8 @@ let createDAMain = (manager, pciAddresses) => {
 
     category.push(vm);
     manager.saveConfiguration();
+
+    return vm;
 }
 
 let setVMNetworkInterface = (manager, client, uuid, cidr) => {

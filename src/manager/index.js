@@ -112,32 +112,27 @@ class Manager
     create(category, options) {
         switch(category.toLowerCase()) {
             case "vm":
-                this.createVM(options.name);
-                break;
+                return this.createVM(options.name);
             case "disk":
-                this.createDisk(
+                return this.createDisk(
                         options.path,
                         options.size);
-                break;
             case "pci":
-                this.createPCIDevice(
+                return this.createPCIDevice(
                         options.busnum);
             case "net":
-                this.createNetworkDevice();
-                break;
+                return this.createNetworkDevice();
             case "route":
-                this.createRouteDevice(
+                return this.createRouteDevice(
                         options.net,
                         options.mask,
                         options.gw,
                         options.uuid);
-                break;
             /* no category list type */
             case "agent":
-                this.createAgent(options.uuid);
-                break;
+                return this.createAgent(options.uuid);
             case 'damain':
-                createDAMain(this, options.addresses);
+                return createDAMain(this, options.addresses);
                 break;
             default:
                 console.log("Not support " + category + " creation.");
@@ -161,6 +156,8 @@ class Manager
 
         category.push(vm);
         this.saveConfiguration();
+
+        return vm;
     }
 
     createDisk(path = undefined, size = undefined) {
@@ -199,7 +196,9 @@ class Manager
             }
 
             this.saveConfiguration();
+            return hd;
         }
+        return null;
     }
 
     createPCIDevice(busnum = undefined, deviceId = undefined) {
@@ -220,13 +219,14 @@ class Manager
                     PCIDevice.prototype);
             if(device.busnum === busnum) {
                 console.log("specified busnum already existed.");
-                return;
+                return device;
             }
         }
 
         category.push(pcidev);
-
         this.saveConfiguration();
+
+        return pcidev;
     }
 
     createNetworkDevice() {
@@ -240,6 +240,8 @@ class Manager
 
         category.push(netdev);
         this.saveConfiguration();
+
+        return netdev;
     }
 
     createRouteDevice(net, mask, gw, netdev_uuid) {
@@ -256,6 +258,8 @@ class Manager
 
         category.push(route);
         this.saveConfiguration();
+
+        return route;
     }
 
     list(categoryName) {
