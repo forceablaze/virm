@@ -1,5 +1,12 @@
 'use strict'
 
+let sleep = (miliseconds) => {
+   var currentTime = new Date().getTime();
+
+   while (currentTime + miliseconds >= new Date().getTime()) {
+   }
+}
+
 let delay = (ms) => {
     return (result) => {
         return new Promise((resolve) => {

@@ -2,7 +2,7 @@
 
 const cidrjs = require('cidr-js');
 const ip = require('ip');
-import { delay, retry, subnetize, cidrize, getRandomIntInclusive } from '../utils';
+import { delay, sleep, retry, subnetize, cidrize, getRandomIntInclusive } from '../utils';
 
 import fs from 'fs';
 import os from 'os';
@@ -18,6 +18,8 @@ import Agent from '../module/agent';
 import QMP from '../module/qmp';
 import SubProcess from '../module/process';
 import CONF from '../conf';
+
+import DAClient from '../../daagent/src/module/daclient';
 
 const DAMAIN_NET_BRIDGE = 'da0';
 const DAMAIN_VER = 'latest';
@@ -70,6 +72,34 @@ let attachCPU = (num_of_cpu, thread_id) => {
     let createSnapshot = new SubProcess('taskset', args);
     let result = createSnapshot.runSync();
     console.log(result);
+}
+
+/* monitor and update DAMain status */
+let monitorDAStatus = (meta, uuid) => {
+    let metaString;
+
+    /* create DAClient connect to DAAgent */
+    console.log(`monitor DAMain at ${meta['ip']}`);
+
+    try {
+        metaString = fs.readFileSync(CONF.RUN_PATH + '/damain/' + uuid, 'utf8').toString();
+    } catch(e) {
+        if(e.code == 'ENOENT') {
+            console.log("meta not exist, close monitor");
+            return;
+        }
+    }
+
+    let client = new DAClient(6161, meta['ip']);
+    client.getDAStatus().then((stat) => {
+        console.log(stat);
+    }).catch((err) => {
+        console.log(err);
+    });
+
+    delay(2000)('retry').then((result) => {
+        monitorDAStatus(meta, uuid);
+    });
 }
 
 let createDAMain = (manager, pciAddresses) => {
@@ -230,6 +260,7 @@ let __startupDAMain = (manager, uuid) => {
                 meta['ip'] = _cidr[0];
                 meta['mask'] = subnetize(_cidr[1]);
                 meta['pid'] = instance.pid;
+                meta['status'] = 'Not Ready';
 
                 let str = JSON.stringify(meta, null, 2);
                 fs.writeFile(CONF.RUN_PATH + '/damain/' + uuid, str,
@@ -238,6 +269,8 @@ let __startupDAMain = (manager, uuid) => {
                         console.log(err);
                     }
                 });
+
+                monitorDAStatus(meta, uuid);
             }).catch((err) => {
                 if(!vm.instance)
                     return;
