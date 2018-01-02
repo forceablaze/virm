@@ -77,6 +77,7 @@ let attachCPU = (num_of_cpu, thread_id) => {
 /* monitor and update DAMain status */
 let monitorDAStatus = (meta, vm) => {
     let metaString;
+    let metaObj;
 
     /* create DAClient connect to DAAgent */
     console.log(`monitor DAMain at ${meta['ip']}`);
@@ -93,25 +94,28 @@ let monitorDAStatus = (meta, vm) => {
 
     try {
         metaString = fs.readFileSync(CONF.RUN_PATH + '/damain/' + vm.uuid, 'utf8').toString();
+        metaObj = JSON.parse(metaString);
     } catch(e) {
-        if(e.code == 'ENOENT') {
-            console.log("meta not exist, close monitor");
-            return;
-        }
+        console.log(e);
+        delay(5000)('retry').then((result) => {
+            monitorDAStatus(meta, vm);
+        });
+        return;
     }
 
     let client = new DAClient(6161, meta['ip']);
-    let metaObj = JSON.parse(metaString);
-
     client.getDAStatus().then((stat) => {
         metaObj['status'] = `${stat['SYS_STATUS']}|${stat['CHG_STATUS']}`;
         metaObj['state'] = `${stat['SYS_STATE']}|${stat['CHG_STATE']}`;
+
+        fs.writeFileSync(CONF.RUN_PATH + '/damain/' + uuid,
+                JSON.stringify(metaObj, null, 2), 'utf8');
     }).catch((err) => {
         console.log(err);
     });
 
-    delay(2000)('retry').then((result) => {
-        monitorDAStatus(meta, vm.uuid);
+    delay(5000)('retry').then((result) => {
+        monitorDAStatus(meta, vm);
     });
 }
 
@@ -273,15 +277,9 @@ let __startupDAMain = (manager, uuid) => {
                 meta['ip'] = _cidr[0];
                 meta['mask'] = subnetize(_cidr[1]);
                 meta['pid'] = instance.pid;
-                meta['status'] = 'Not Ready';
 
                 let str = JSON.stringify(meta, null, 2);
-                fs.writeFile(CONF.RUN_PATH + '/damain/' + uuid, str,
-                        'utf8', (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
+                fs.writeFileSync(CONF.RUN_PATH + '/damain/' + uuid, str, 'utf8');
 
                 monitorDAStatus(meta, vm);
             }).catch((err) => {
