@@ -108,7 +108,7 @@ let monitorDAStatus = (meta, vm) => {
         metaObj['status'] = `${stat['SYS_STATUS']}|${stat['CHG_STATUS']}`;
         metaObj['state'] = `${stat['SYS_STATE']}|${stat['CHG_STATE']}`;
 
-        fs.writeFileSync(CONF.RUN_PATH + '/damain/' + uuid,
+        fs.writeFileSync(CONF.RUN_PATH + '/damain/' + vm.uuid,
                 JSON.stringify(metaObj, null, 2), 'utf8');
     }).catch((err) => {
         console.log(err);
