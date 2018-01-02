@@ -75,14 +75,24 @@ let attachCPU = (num_of_cpu, thread_id) => {
 }
 
 /* monitor and update DAMain status */
-let monitorDAStatus = (meta, uuid) => {
+let monitorDAStatus = (meta, vm) => {
     let metaString;
 
     /* create DAClient connect to DAAgent */
     console.log(`monitor DAMain at ${meta['ip']}`);
 
+    if(vm.status.shutdown) {
+        console.log("VM already shutdown, close monitor");
+        try {
+            fs.unlinkSync(CONF.RUN_PATH + '/damain/' + vm.uuid);
+        } catch(err) {
+            console.log(err);
+        }
+        return;
+    }
+
     try {
-        metaString = fs.readFileSync(CONF.RUN_PATH + '/damain/' + uuid, 'utf8').toString();
+        metaString = fs.readFileSync(CONF.RUN_PATH + '/damain/' + vm.uuid, 'utf8').toString();
     } catch(e) {
         if(e.code == 'ENOENT') {
             console.log("meta not exist, close monitor");
@@ -91,8 +101,11 @@ let monitorDAStatus = (meta, uuid) => {
     }
 
     let client = new DAClient(6161, meta['ip']);
+    let metaObj = JSON.parse(metaString);
+
     client.getDAStatus().then((stat) => {
-        console.log(stat);
+        metaObj['status'] = `${stat['SYS_STATUS']}|${stat['CHG_STATUS']}`;
+        metaObj['state'] = `${stat['SYS_STATE']}|${stat['CHG_STATE']}`;
     }).catch((err) => {
         console.log(err);
     });
@@ -270,7 +283,7 @@ let __startupDAMain = (manager, uuid) => {
                     }
                 });
 
-                monitorDAStatus(meta, uuid);
+                monitorDAStatus(meta, vm);
             }).catch((err) => {
                 if(!vm.instance)
                     return;

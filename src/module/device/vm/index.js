@@ -154,6 +154,7 @@ class VirtualMachine extends Device
         return new Promise((resolve, reject) => {
             this.createInstance()
                 .then((instance) => {
+                    this.status.shutdown = false;
                     resolve(instance);
                 }).catch((err) => {
                     reject(err);
