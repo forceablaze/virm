@@ -111,7 +111,7 @@ let monitorDAStatus = (meta, vm) => {
     });
 
     delay(2000)('retry').then((result) => {
-        monitorDAStatus(meta, uuid);
+        monitorDAStatus(meta, vm.uuid);
     });
 }
 
