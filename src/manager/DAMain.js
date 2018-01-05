@@ -79,9 +79,6 @@ let monitorDAStatus = (meta, vm) => {
     let metaString;
     let metaObj;
 
-    /* create DAClient connect to DAAgent */
-    console.log(`monitor DAMain at ${meta['ip']}`);
-
     if(vm.status.shutdown) {
         console.log("VM already shutdown, close monitor");
         try {
