@@ -252,6 +252,9 @@ let __startupDAMain = (manager, uuid) => {
                 console.log(ev);
                 if(vm.status.shutdown)
                      manager.stop('damain', vm.uuid);
+                if(vm.status.tunnel !== undefined) {
+                    new SubProcess('kill', [ '-SIGINT', vm.status.tunnel ]).run();
+                }
             },
         };
         manager.createQMP(vm.uuid, ev_handler).then((qmp) => {
@@ -294,10 +297,22 @@ let __startupDAMain = (manager, uuid) => {
 
         Object.setPrototypeOf(netdevs[0], NetworkDevice.prototype);
 
-        /* setting NIC with client */
+        /* setting NIC with client
+         * and create a ssh tunnel to 7080
+         */
         setVMNetworkInterface(manager, client, uuid,
                 netdevs[0].ip, netdevs[0].mask).then((value) => {
             tryGetNICAddress();
+
+            let args = [
+                '-NL', ":7080:" + netdevs[0].ip + ":7080",
+                "-o", "StrictHostKeyChecking no", "localhost", "-p", "8888"
+            ];
+
+            let tunnel = new SubProcess('/usr/bin/ssh', args);
+            tunnel.run();
+            vm.status['tunnel'] = tunnel.pid;
+            console.log('ssh tunnel to 7080 run at ' + tunnel.pid);
         });
     };
 
