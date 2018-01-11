@@ -130,7 +130,7 @@ let createDAMain = (manager, pciAddresses) => {
     console.log(result);
 
     vm.setCPUCore(cpus.length / 2);
-    vm.setMemory(4096);
+    vm.setMemory(8192);
     vm.addDevice(new HardDisk(CONF.IMAGE_PATH + '/' + vm.uuid));
 
     if(DAMAIN_BRIDGE_IF.family === 'IPv4') {
