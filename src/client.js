@@ -19,7 +19,8 @@ try {
         addresses: { help: 'the PCI addresses 01:00.0,02:00.0' },
         timeout: { default: 3000 },
 
-        qmp: { default: 'query-status' }
+        qmp: { default: 'query-status' },
+        agent: { default: 'guest-network-get-interfaces' }
     });
 } catch(err) {
     process.exit(10);
@@ -85,6 +86,8 @@ let generateReq = () => {
         reqBuilder.setPCIAddresses(opts['opt']['addresses']);
     if(opts['opt']['qmp'] !== undefined)
         reqBuilder.setQMPCommand(opts['opt']['qmp']);
+    if(opts['opt']['agent'] !== undefined)
+        reqBuilder.setAgentCommand(opts['opt']['agent']);
 
     return reqBuilder.build();
 };

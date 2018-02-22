@@ -6,7 +6,7 @@ const SYNC_BYTE = 0xFF;
 const END_BYTE = 0xFE;
 
 const CMD = new Enum(
-        ['LIST', 'CREATE', 'START', 'STOP', 'ADD', 'FIND', 'QMP']);
+        ['LIST', 'CREATE', 'START', 'STOP', 'ADD', 'FIND', 'QMP', 'AGENT']);
 
 const CATEGORY = new Enum(
         ['VM', 'NET', 'DISK', 'PCI', 'ROUTE', 'DAMAIN']);
@@ -73,6 +73,11 @@ class Req
 
                 setQMPCommand(command) {
                     this._attrs['options']['qmp_command'] = command;
+                    return this;
+                }
+
+                setAgentCommand(command) {
+                    this._attrs['options']['agent_command'] = command;
                     return this;
                 }
 

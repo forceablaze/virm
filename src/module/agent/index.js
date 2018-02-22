@@ -145,6 +145,18 @@ class Agent {
         });
     }
 
+    execute(command) {
+        return new Promise((resolve, reject) => {
+            this.sendAgentRequest('{"execute": "' + command + '"}')
+            .then((obj) => {
+                resolve(obj['return']);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
     /* write <command> to /tmp/task.sh */
     sendTask(command, result) {
         return new Promise((resolve, reject) => {

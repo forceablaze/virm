@@ -35,6 +35,35 @@ emitter.on('exec', (client, obj) => {
 
     let resBuilder = new Res.ResBuilder();
     let data = {};
+    let async = false;
+
+    switch(obj['cmd']) {
+        case CMD.QMP.toString():
+        case CMD.AGENT.toString():
+          async = true;
+    }
+
+    switch(obj['cmd']) {
+        case CMD.QMP.toString():
+            manager.qmp(
+                    obj['options']['uuid'],
+                    obj['options']['qmp_command']);
+            break;
+        case CMD.AGENT.toString():
+            manager.agent(
+                    obj['options']['uuid'],
+                    obj['options']['agent_command']).then((value) => {
+                resBuilder.setData(JSON.stringify(value));
+                emitter.emit('response', client,
+                    resBuilder.build().toBuffer());
+            }).catch((err) => {
+                console.log(err);
+            });
+            break;
+    }
+
+    if(async)
+        return;
 
     switch(obj['cmd']) {
         case CMD.CREATE.toString():
@@ -61,11 +90,6 @@ emitter.on('exec', (client, obj) => {
                     obj['options']['uuid'], obj['options']['name']);
             if(dev)
                 data = dev.uuid;
-            break;
-        case CMD.QMP.toString():
-            manager.qmp(
-                    obj['options']['uuid'],
-                    obj['options']['qmp_command']);
             break;
         default:
             console.log('not support cmd ' + obj['cmd']);
