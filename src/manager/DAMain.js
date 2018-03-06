@@ -295,7 +295,7 @@ let __startupDAMain = (manager, uuid) => {
         let syncTime = () => {
             let nanotime = Number(nano.toString(nano.now()));
             console.log('sync time', nanotime);
-            client.setGuestTime(nanoTime).
+            client.setGuestTime(nanotime).
                 then((value) => {
                     client.getGuestTime().then((time) => {
                         console.log('sync time ', time);
