@@ -145,9 +145,15 @@ class Agent {
         });
     }
 
-    execute(command) {
+    execute(command, argument) {
         return new Promise((resolve, reject) => {
-            this.sendAgentRequest('{"execute": "' + command + '"}')
+            let cmd;
+            if(argument !== undefined)
+              cmd = '{"execute": "' + command + '", "arguments": ' + argument + '}';
+            else
+              cmd = '{"execute": "' + command + '"}';
+
+            this.sendAgentRequest(cmd)
             .then((obj) => {
                 resolve(obj['return']);
             })
