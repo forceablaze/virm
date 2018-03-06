@@ -6,6 +6,7 @@ import { delay, sleep, retry, subnetize, cidrize, getRandomIntInclusive } from '
 
 import fs from 'fs';
 import os from 'os';
+import nano from 'nano-seconds';
 
 import VirtualMachine from '../module/device/vm';
 import HardDisk from '../module/device/disk';
@@ -291,6 +292,15 @@ let __startupDAMain = (manager, uuid) => {
             });
         };
 
+        let syncTime = () => {
+            client.setGuestTime(Number(nano.toString(nano.now()))).
+                then((value) => {
+                    client.getGuestTime().then((time) => {
+                        console.log('sync time ', time);
+                    }).catch((err) => { console.log(err) });
+                }).catch((err) => { console.log(err) });
+        }
+
         let netdevs = vm.getDevices('NetworkDevice');
         if(netdevs.length == 0)
             return;
@@ -303,6 +313,7 @@ let __startupDAMain = (manager, uuid) => {
         setVMNetworkInterface(manager, client, uuid,
                 netdevs[0].ip, netdevs[0].mask).then((value) => {
             tryGetNICAddress();
+            syncTime();
 
             let args = [
                 '-NL', ":7080:" + netdevs[0].ip + ":7080",

@@ -145,6 +145,32 @@ class Agent {
         });
     }
 
+    getGuestTime() {
+        return new Promise((resolve, reject) => {
+            this.sendAgentRequest('{"execute": "guest-get-time"}')
+            .then((obj) => {
+                resolve(obj['return']);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    setGuestTime(nanoSeconds) {
+        return new Promise((resolve, reject) => {
+            this.sendAgentRequest(
+                '{"execute": "guest-set-time",' +
+                '"arguments": {"time": ' + nanoSeconds + '}');
+            .then((obj) => {
+                resolve(obj['return']);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
     execute(command, argument) {
         return new Promise((resolve, reject) => {
             let cmd;
