@@ -23,6 +23,7 @@
     "commander": "^2.11.0",
     "enum": "^2.4.0",
     "ip": "^1.1.5",
+    "nano-seconds": "^1.2.2",
     "network": "^0.4.0",
     "nexe": "^2.0.0-rc.6",
     "node-random-name": "^1.0.1",
