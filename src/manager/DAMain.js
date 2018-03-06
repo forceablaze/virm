@@ -293,12 +293,19 @@ let __startupDAMain = (manager, uuid) => {
         };
 
         let syncTime = () => {
-            client.setGuestTime(Number(nano.toString(nano.now()))).
+            let nanotime = Number(nano.toString(nano.now()));
+            console.log('sync time', nanotime);
+            client.setGuestTime(nanoTime).
                 then((value) => {
                     client.getGuestTime().then((time) => {
                         console.log('sync time ', time);
                     }).catch((err) => { console.log(err) });
-                }).catch((err) => { console.log(err) });
+                }).catch((err) => {
+                    console.log('sync time', err);
+                    delay(1000)('retry').then((result) => {
+                        syncTime();
+                    });
+                });
         }
 
         let netdevs = vm.getDevices('NetworkDevice');
