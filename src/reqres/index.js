@@ -81,6 +81,11 @@ class Req
                     return this;
                 }
 
+                setArgument(argument) {
+                    this._attrs['options']['argument'] = argument;
+                    return this;
+                }
+
                 build() {
                     return new Req(this._attrs);
                 }

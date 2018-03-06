@@ -52,10 +52,13 @@ emitter.on('exec', (client, obj) => {
         case CMD.AGENT.toString():
             manager.agent(
                     obj['options']['uuid'],
-                    obj['options']['agent_command']).then((value) => {
-                resBuilder.setData(JSON.stringify(value));
-                emitter.emit('response', client,
-                    resBuilder.build().toBuffer());
+                    obj['options']['agent_command'],
+                    obj['options']['argument']).then((value) => {
+                if(value !== undefined) {
+                  resBuilder.setData(JSON.stringify(value));
+                  emitter.emit('response', client,
+                      resBuilder.build().toBuffer());
+                }
             }).catch((err) => {
                 console.log(err);
             });

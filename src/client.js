@@ -20,7 +20,8 @@ try {
         timeout: { default: 3000 },
 
         qmp: { default: 'query-status' },
-        agent: { default: 'guest-network-get-interfaces' }
+        agent: { default: 'guest-network-get-interfaces' },
+        argument: { default: undefined }
     });
 } catch(err) {
     process.exit(10);
@@ -88,6 +89,8 @@ let generateReq = () => {
         reqBuilder.setQMPCommand(opts['opt']['qmp']);
     if(opts['opt']['agent'] !== undefined)
         reqBuilder.setAgentCommand(opts['opt']['agent']);
+    if(opts['opt']['argument'] !== undefined)
+        reqBuilder.setArgument(opts['opt']['argument']);
 
     return reqBuilder.build();
 };
