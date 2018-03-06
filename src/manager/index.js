@@ -422,13 +422,13 @@ class Manager
         return this.__createAgent(vm);
     }
 
-    agent(uuid, command) {
+    agent(uuid, command, argument) {
         let vm = this.findDevice('vm', uuid);
         if(!vm)
             return;
 
         let client = this.createAgent(vm.uuid);
-        return client.execute(command);
+        return client.execute(command, argument);
     }
 
     createRoute(uuid, ip) {

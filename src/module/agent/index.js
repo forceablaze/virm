@@ -74,7 +74,7 @@ class Agent {
                 setTimeout(() => {
                     client.destroy();
                     reject(new Error('ETIMEOUT'));
-                }, 1500);
+                }, 10000);
             })
             .catch((err) => {
                 reject(err);
