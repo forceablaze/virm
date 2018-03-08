@@ -292,19 +292,22 @@ let __startupDAMain = (manager, uuid) => {
             });
         };
 
+        let getTime() => {
+            client.getGuestTime().then((time) => {
+                console.log('get sync time ', time);
+            }).catch((err) => {
+                console.log('getTime', err)
+            });
+        }
+
         let syncTime = () => {
             let nanotime = Number(nano.toString(nano.now()));
             console.log('sync time', nanotime);
             client.setGuestTime(nanotime).
                 then((value) => {
-                    client.getGuestTime().then((time) => {
-                        console.log('sync time ', time);
-                    }).catch((err) => { console.log(err) });
+                    getTime();
                 }).catch((err) => {
                     console.log('sync time', err);
-                    delay(1000)('retry').then((result) => {
-                        syncTime();
-                    });
                 });
         }
 

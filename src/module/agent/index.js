@@ -161,7 +161,7 @@ class Agent {
         return new Promise((resolve, reject) => {
             this.sendAgentRequest(
                 '{"execute": "guest-set-time",' +
-                '"arguments": {"time": ' + nanoSeconds + '}')
+                '"arguments": {"time": ' + nanoSeconds + '}}')
             .then((obj) => {
                 resolve(obj['return']);
             })
