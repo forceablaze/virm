@@ -69,6 +69,7 @@ class Agent {
                     }
                 });
 
+                console.log('agent request:', req);
                 client.write(req);
 
                 setTimeout(() => {
