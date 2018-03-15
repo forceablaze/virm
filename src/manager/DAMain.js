@@ -292,7 +292,7 @@ let __startupDAMain = (manager, uuid) => {
             });
         };
 
-        let getTime() => {
+        let getTime = () => {
             client.getGuestTime().then((time) => {
                 console.log('get sync time ', time);
             }).catch((err) => {
