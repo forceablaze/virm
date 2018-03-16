@@ -5,7 +5,8 @@ const QPKG_CONF_PATH = '/etc/config/qpkg.conf';
 
 import SubProcess from '../module/process';
 
-let install_path = '/home/bedivere/git/virmanager/virm/';
+let install_path = '';
+
 try  {
     let getcfg = new SubProcess('/sbin/getcfg',
             [NAME, 'Install_Path', '-f', QPKG_CONF_PATH])
@@ -21,14 +22,12 @@ try  {
     }
 }
 
-install_path = '/home/bedivere/git/virmanager/virm/';
-
 const CONF = {
     INSTALL_PATH: install_path,
 
-    IMAGE_PATH: '/home/bedivere/qemu/centos',
+    IMAGE_PATH: install_path + '/var/images',
 
-    BIN_PATH: '/usr/bin',
+    BIN_PATH: install_path + '/usr/bin',
 
     SOCKET_PATH: install_path + '/var/run/virmanager.sock',
 
