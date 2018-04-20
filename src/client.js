@@ -44,8 +44,7 @@ emitter.on('end', (chunk, i) => {
         inBuffer.splice(0, inBuffer.length);
         done();
     });
-    let data = JSON.parse(buf.toString('utf8'));
-    console.log(data);
+    console.log(buf.toString('utf8'));
     process.emit('SIGINT', 0);
 });
 
