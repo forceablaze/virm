@@ -68,9 +68,12 @@ emitter.on('exec', (client, obj) => {
     if(async)
         return;
 
+    let dev;
     switch(obj['cmd']) {
         case CMD.CREATE.toString():
-            manager.create(obj['category'], obj['options']);
+            dev = manager.create(obj['category'], obj['options']);
+            if(dev)
+              data = { 'uuid': dev.uuid };
             break;
         case CMD.START.toString():
             manager.start(obj['category'], obj['options']['uuid']);
