@@ -68,7 +68,7 @@ emitter.on('exec', (client, obj) => {
     if(async)
         return;
 
-    let dev;
+    let dev = null;
     switch(obj['cmd']) {
         case CMD.CREATE.toString():
             dev = manager.create(obj['category'], obj['options']);
@@ -92,7 +92,7 @@ emitter.on('exec', (client, obj) => {
         }
             break;
         case CMD.FIND.toString():
-            let dev = manager.findDevice(obj['category'],
+            dev = manager.findDevice(obj['category'],
                     obj['options']['uuid'], obj['options']['name']);
             if(dev)
                 data = dev.uuid;
