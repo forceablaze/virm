@@ -100,6 +100,10 @@ class Res
     }
 
     toString() {
+        if(typeof(this._data) ===  'string') {
+            return this._data;
+        }
+
         return JSON.stringify(this._data);
     }
 
